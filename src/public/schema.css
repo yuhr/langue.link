@@ -1,0 +1,35 @@
+:root {
+  --palette-accent-from: #01f3ff;
+  --palette-accent-to: #01ffa6;
+  --palette-accent-dark: color(var(--palette-accent-from) blackness(+25%));
+  --palette-fore: #666460;
+  --palette-fore-light: color(var(--palette-fore) whiteness(+100%));
+  --palette-fore-bright: #ffffff;
+  --palette-back: #f9f9f9;
+  --palette-fore-sub: #cccbca;
+  --palette-back-sub: #ffffff;
+
+  --color-text: var(--palette-fore);
+  --color-text-invert: var(--palette-fore-bright);
+  --color-text-link: var(--palette-accent-dark);
+  --color-text-placeholder: var(--palette-fore-sub);
+  --color-text-note: var(--palette-fore-light);
+  --color-background: var(--palette-back);
+  --color-background-input: var(--palette-back-sub);
+  --color-background-button: var(--palette-fore);
+  --color-background-button-accent: var(--palette-accent-dark);
+  --color-border-accent: var(--palette-accent-dark);
+  --color-border-input: var(--palette-fore-sub);
+
+  --unit-minimal: 0.25mm;
+  --unit-height-control: 2.25rem;
+  --unit-width-colorline: 0.5mm;
+  --unit-width-ribbon: 3rem;
+  --unit-border-input: 0.3mm;
+  --unit-radius-input: 1mm;
+  --unit-margin: 1mm;
+  --unit-font-size: 3.75mm;
+  --unit-font-size-button: 0.85rem;
+
+  --duration-transition-hover: 0.25s;
+}

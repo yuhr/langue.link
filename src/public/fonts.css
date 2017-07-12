@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css?family=Varela+Round');
+
+@font-face {
+  font-family: Phonetic;
+  font-style: normal;
+  font-weight: 400;
+  src:
+    local('Charis SIL Regular'),
+    url('fonts/CharisSIL-R.woff2');
+}
+@font-face {
+  font-family: Phonetic;
+  font-style: italic;
+  font-weight: 400;
+  src:
+    local('Charis SIL Italic'),
+    url('fonts/CharisSIL-I.woff2');
+}
+@font-face {
+  font-family: Phonetic;
+  font-style: normal;
+  font-weight: 700;
+  src:
+    local('Charis SIL Bold'),
+    url('fonts/CharisSIL-B.woff2');
+}
+@font-face {
+  font-family: Phonetic;
+  font-style: italic;
+  font-weight: 700;
+  src:
+    local('Charis SIL Bold Italic'),
+    url('fonts/CharisSIL-BI.woff2');
+}

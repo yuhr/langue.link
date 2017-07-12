@@ -1,0 +1,99 @@
+@import '../../node_modules/normalize.css/normalize.css';
+@import './schema.css';
+@import './fonts.css';
+
+// remove unwanted outlines on focus
+a:focus { outline: none; }
+button:focus { outline: none; }
+input:focus { outline: none; }
+
+html {
+  height: 100%;
+}
+html, body {
+  width: 100%;
+  font: 400 var(--unit-font-size)/1.75em sans-serif;
+  font-feature-settings: 'palt','hkna','ccmp','liga','kern','clig','calt';
+  font-kerning: normal;
+  font-variant: common-ligatures contextual;
+  text-rendering: geometricPrecision;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
+body {
+  min-height: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+main {
+  flex: 1;
+  padding-top: var(--unit-width-ribbon);
+}
+
+input {
+  border: solid var(--unit-border-input) var(--color-border-input);
+  color: var(--color-text);
+  background-color: var(--color-background-input);
+  border-radius: var(--unit-radius-input);
+  margin: var(--unit-margin);
+  display: inline-block;
+  height: var(--unit-height-control);
+  padding: 0 0.75em;
+  box-sizing: border-box;
+  position: relative;
+  width: calc(100% - var(--unit-margin) * 2);
+  font: var(--unit-font-size-button) 'Varela Round', sans-serif;
+  letter-spacing: 0.05em;
+  transition: border var(--duration-transition-hover);
+  &::placeholder {
+    color: var(--color-text-placeholder);
+    transition: color var(--duration-transition-hover);
+  }
+  &:hover::placeholder {
+    color: color(var(--color-text-placeholder) blackness(+25%));
+  }
+  &:focus {
+    border: solid calc(2 * var(--unit-border-input)) var(--color-border-accent);
+  }
+}
+
+button {
+  border: none;
+  color: var(--color-text-invert);
+  background-color: var(--color-background-button-accent);
+  border-radius: var(--unit-radius-input);
+  margin: var(--unit-margin);
+  display: inline-block;
+  user-select: none;
+  height: var(--unit-height-control);
+  padding: 0 1.5em;
+  font: var(--unit-font-size-button) 'Varela Round', sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background-color var(--duration-transition-hover);
+  &:hover {
+    background-color: color(var(--color-background-button-accent) blackness(+25%));
+  }
+}
+
+a {
+  text-decoration: none;
+  color: var(--color-text-link);
+  transition: color var(--duration-transition-hover);
+  &:hover {
+    color: color(var(--color-text-link) blackness(+25%));
+  }
+}
+
+span.lg_note {
+  color: var(--color-text-note);
+}
+
+footer {
+  text-align: center;
+  margin: 2em;
+}

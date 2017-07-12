@@ -1,0 +1,99 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint-eslint-rules", "tslint:recommended"],
+  "rules": {
+    "quotemark": {
+      "options": ["single", "avoid-escape", "avoid-template"]
+    },
+    "no-string-literal": false,
+    "curly": false,
+    "new-parens": false,
+    "eofline": false,
+    "ter-indent": [true, 2],
+    "no-mixed-spaces-and-tabs": true,
+    "deprecation": true,
+    "comment-format": false,
+    "member-access": { "options": ["no-public"] },
+    "ordered-imports": false,
+    "trailing-comma": { "options": [{
+      "multiline": "never",
+      "singleline": "never",
+      "esSpecCompliant": true
+    }] },
+    "max-line-length": false,
+    "no-namespace": false,
+    "no-shadowed-variable": false,
+    "radix": false,
+    "prefer-template": true,
+    "prefer-object-spread": true,
+    "prefer-conditional-expression": { "options": ["check-else-if"] },
+    "no-console": { "severity": "warning" },
+    "object-literal-sort-keys": false,
+    "no-unused-expression": {
+      "options": [
+        "allow-fast-null-checks",
+        "allow-new",
+        "allow-tagged-template"
+      ],
+      "severity": "warning"
+    },
+    "no-unused-variable": {
+      "options": ["check-parameters"],
+      "severity": "warning"
+    },
+    "no-switch-case-fall-through": true,
+    "no-any": { "severity": "warning" },
+    "no-unsafe-any": { "severity": "warning" },
+    "object-curly-spacing": "never",
+    "array-bracket-spacing": { "options": ["never"] },
+    "semicolon": { "options": ["never"] },
+    "no-unexpected-multiline": true,
+    "no-constant-condition": { "severity": "warning" },
+    "no-sparse-arrays": true,
+    "no-extra-boolean-cast": false,
+    "restrict-plus-operands": true,
+    "strict-boolean-expressions": true,
+    "strict-type-predicates": true,
+    "no-parameter-reassignment": true,
+    "prefer-for-of": true,
+    "only-arrow-functions": true,
+    "arrow-parens": [true, "ban-single-arg-parens"],
+    "interface-over-type-literal": false,
+    "switch-default": true,
+    "prefer-switch": false,
+    "one-line": {
+      "options": ["check-catch", "check-else", "check-finally", "check-open-brace", "check-whitespace"]
+    },
+    "ter-no-irregular-whitespace": {
+      "options": {
+        "skipStrings": true,
+        "skipComments": true,
+        "skipRegExps": true,
+        "skipTemplates": true
+      }
+    },
+    "ter-no-tabs": true,
+    "no-multi-spaces": [
+      true,
+      {
+        "exceptions": { "PropertyAssignment": false, "OtherException": "true|false" }
+      }
+    ],
+    "number-literal-format": true,
+    "object-literal-key-quotes": { "options": ["consistent-as-needed"] }
+    /*
+    "no-spaced-func": true,
+    "space-unary-ops": {
+        "words": true,
+        "nonwords": false
+    },
+    "key-spacing": {
+      "options": {
+        "beforeColon": false,
+        "afterColon": true
+      }
+    },
+    "eol-last": "never"
+    */
+  }
+}

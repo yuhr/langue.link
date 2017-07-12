@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://langue.link/sitemap.xml

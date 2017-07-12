@@ -1,4 +1,9 @@
 .*
 !.gitignore
-!.babelrc
+!.gitattributes
+!.dockerignore
+!.secret
+
 node_modules
+yarn-error.log
+dst
