@@ -18,7 +18,7 @@ import { Strategy as CustomStrategy } from 'passport-custom'
 import Provider from 'oidc-provider'
 import { Issuer } from 'openid-client'
 
-import * as DB from './db/users'
+import { Account } from './db/account'
 
 const IS_PROD = 'production' === process.env.NODE_ENV
 const URL_HOST = IS_PROD ? 'langue.link' : 'langue.link'
@@ -36,6 +36,7 @@ app.use(cors({
 
 const router = new Router
 app.use(router.routes())
+app.use(router.allowedMethods())
 
 // static
 app.use(async (ctx, next) => {
@@ -97,6 +98,13 @@ const oidc = new Provider('https://langue.link', {
     token: '/api/oidc/token',
     userinfo: '/api/oidc/me'
   },
+  claims: {
+    address: ['address'],
+    email: ['email', 'email_verified'],
+    phone: ['phone_number', 'phone_number_verified'],
+    profile: ['birthdate', 'family_name', 'gender', 'given_name', 'locale', 'middle_name', 'name',
+      'nickname', 'picture', 'preferred_username', 'profile', 'updated_at', 'website', 'zoneinfo']
+  },
   scopes: ['openid', 'email'],
   cookies: {
     keys: ['a', 'b', 'c'],
@@ -109,7 +117,8 @@ const oidc = new Provider('https://langue.link', {
   },
   interactionUrl: async (ctx: any, interaction: any) => {
     return `https://langue.link/api/auth/interaction/${ctx.oidc.uuid}`
-  }
+  },
+  findById: Account.findById
 })
 oidc.initialize({
   clients: [{
@@ -139,6 +148,7 @@ oidc.initialize({
       for (const key in data) params.append(key, data[key])
       const url = `${endpoint}?${params.toString()}`
       ctx.redirect(url)
+      ctx.status = 303
     } else {
       const endpoint = `https://langue.link/api/auth/interaction/${details.uuid}/confirm`
       const data: { [key: string]: string } = {
@@ -148,6 +158,7 @@ oidc.initialize({
       for (const key in data) params.append(key, data[key])
       const url = `${endpoint}?${params.toString()}`
       ctx.redirect(url)
+      ctx.status = 303
     }
     await next()
   })
@@ -155,13 +166,13 @@ oidc.initialize({
   router.get('/api/auth/interaction/:grant/login', bodyparser(), async (ctx, next) => {
     console.log('/api/auth/interaction/:grant/login')
     const { email, password } = ctx.session!.cred
-    const account = await DB.findUser(email, password)
+    const account = await Account.find(await Account.identify(email))
     const result = {
       login: {
-        account: account.email,
+        account: account.accountId,
         acr: 'urn:mace:incommon:iap:bronze',
         amr: ['pwd'],
-        remember: false,
+        remember: true,
         ts: Math.floor(Date.now() / 1000)
       },
       consent: {}
@@ -173,8 +184,9 @@ oidc.initialize({
     interaction.result = result
     await interaction.save(60)
     interaction.returnTo = interaction.returnTo.replace(/^https:\/\/localhost:7999/, 'https://langue.link')
-    ctx.session!.uid = account.uid
+    ctx.session!.accountId = account.accountId
     ctx.redirect(interaction.returnTo)
+    ctx.status = 303
     await next()
   })
 
@@ -189,6 +201,7 @@ oidc.initialize({
     await interaction.save(60)
     interaction.returnTo = interaction.returnTo.replace(/^https:\/\/localhost:7999/, 'https://langue.link')
     ctx.redirect(interaction.returnTo)
+    ctx.status = 303
     await next()
   })
 
@@ -218,6 +231,7 @@ oidc.initialize({
       const url = client.authorizationUrl(params).replace(/^http:\/\/localhost:7999/, 'https://langue.link')
       ctx.session!.cred = ctx.request.body
       ctx.redirect(url)
+      ctx.status = 303
       await next()
     })
 

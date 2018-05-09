@@ -7,7 +7,7 @@ declare module 'gun' {
     uuid?: boolean,
     [moduleName: string]: any
   }
-  export type Data = { [key: string]: Data } | string | number | boolean | null
+  export type Document = { [key: string]: Document } | string | number | boolean | null
   export type Ack = {
     err?: any,
     ok?: string
@@ -17,42 +17,42 @@ declare module 'gun' {
     constructor(peer: string)
     constructor(peers: string[])
     constructor(options?: Options)
-    put(data: Data, callback?: (ack: {
+    put(data: Document, callback?: (ack: {
       err?: any,
       ok?: string
     }) => void): Gun
     get(key: string, callback?: (ack: {
       err?: any,
-      put?: Data,
+      put?: Document,
       get: string
     }) => void): Gun
     opt(options: Options): void
     back(amount: number): Gun
-    on(callback: (data: Data, key: string) => void, option?: boolean | {
+    on(callback: (data: Document, key: string) => void, option?: boolean | {
       change: boolean
     }): Gun
-    once(callback: (data: Data, key: string) => void, option?: {
+    once(callback: (data: Document, key: string) => void, option?: {
       wait: number
     }): Gun
-    val(callback: (data: Data, key: string) => void, option?: {
+    val(callback: (data: Document, key: string) => void, option?: {
       wait: number
     }): Gun
     set(data: Gun | object, callback?: (ack: {
       err?: any,
       ok?: string
     }) => void): Gun
-    map(callback: (value: Data, key: string) => (Data | undefined)): Gun
+    map(callback: (value: Document, key: string) => (Document | undefined)): Gun
     path(key: string): Gun
     not(callback: (key: string) => void): Gun
-    open(callback: (data: Data) => void, option?: { wait: number }): Gun
-    load(callback: (data: Data) => void, option?: { wait: number }): Gun
-    then(callback?: (resolved: Data) => void): Promise<Data>
+    open(callback: (data: Document) => void, option?: { wait: number }): Gun
+    load(callback: (data: Document) => void, option?: { wait: number }): Gun
+    then(callback?: (resolved: Document) => void): Promise<Document>
     promise(callback?: (resolved: {
-      put: Data,
+      put: Document,
       get: string,
       gun: Gun
     }) => void): Promise<{
-      put: Data,
+      put: Document,
       get: string,
       gun: Gun
     }>
