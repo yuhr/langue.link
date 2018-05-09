@@ -53,7 +53,7 @@ app.use(async (ctx, next) => {
 })
 
 app.use(async (ctx, next) => {
-  const resolve = (filename: string) => `./dst/public/${filename}`
+  const resolve = (filename: string) => `./dst/static/${filename}`
   switch (true) {
   case /^\/$/.test(ctx.path):
     await send(ctx, resolve('index.html'))

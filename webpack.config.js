@@ -1,7 +1,7 @@
 const IS_PROD = 'production' === process.env.NODE_ENV
 
 const postcss_plugins = [
-  require('postcss-import-sync')({ root: './src/public/tags', addDependencyTo: 'webpack' }),
+  require('postcss-import-sync')({ root: './src/static/tags', addDependencyTo: 'webpack' }),
   require('postcss-nesting')(),
   require('postcss-cssnext')({ browsers: ['last 2 versions'] })
 ]
@@ -46,12 +46,12 @@ module.exports = [{
 },
 {
   name: 'browser',
-  context: __dirname + '/src/public',
+  context: __dirname + '/src/static',
   entry: {
     'index': './index.ts',
   },
   output: {
-    path: __dirname + '/dst/public',
+    path: __dirname + '/dst/static',
     filename: './[name].js'
   },
   resolve: { extensions: ['.js', '.ts', '.tag'] },

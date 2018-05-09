@@ -2,7 +2,7 @@ module.exports = {
   ui: {
     port: 8002
   },
-  files: './dst/public/**/*',
+  files: './dst/static/**/*',
   proxy: 'http://app:8000',
   port: 8001,
   logLevel: 'debug',
