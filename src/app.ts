@@ -1,89 +1,28 @@
-import path from 'path'
-import fs, { access } from 'fs'
-import crypto from 'crypto'
-import fetch from 'node-fetch'
+import fs from 'fs'
 import { URLSearchParams } from 'url'
 
 import * as Type from 'runtypes'
+import nanoid from 'nanoid'
 
-import https from 'https'
 import Koa from 'koa'
 import Router from 'koa-router'
 import bodyparser from 'koa-bodyparser'
 import cors from 'kcors'
 import send from 'koa-send'
-import mount from 'koa-mount'
-import rewrite from 'koa-rewrite'
 import session from 'koa-session'
 import helmet from 'koa-helmet'
 import proxy from 'koa-proxies'
+import passport from 'koa-passport'
+import { Strategy as CustomStrategy } from 'passport-custom'
 
 import Provider from 'oidc-provider'
 import { Issuer } from 'openid-client'
 
-import jwt from 'jsonwebtoken'
-const generateJWT = (userId: string) => {
-  return jwt.sign({ dat: true }, 'secret', {
-    expiresIn: '1 hour',
-    audience: 'https://langue.link',
-    issuer: 'https://langue.link',
-    subject: userId,
-    jwtid: nanoid()
-  })
-}
-
-import passport from 'koa-passport'
-import { Strategy as CustomStrategy } from 'passport-custom'
-
-import Gun from 'gun'
-import 'gun-mongo-key'
-import 'gun/lib/load'
-import 'gun/lib/not'
-import 'gun/lib/then'
-
-import nanoid from 'nanoid'
-import isemail from 'isemail'
-import bcrypt from 'bcrypt'
-import { nonExecutableDefinitionMessage } from 'graphql/validation/rules/ExecutableDefinitions'
-import { DESTRUCTION } from 'dns'
-import { INSPECT_MAX_BYTES } from 'buffer'
+import * as DB from './db/users'
 
 const IS_PROD = 'production' === process.env.NODE_ENV
 const URL_HOST = IS_PROD ? 'langue.link' : 'langue.link'
-const keys = JSON.parse(fs.readFileSync(path.resolve('./.secret/.keys.json')).toString())
-
-const db: { [key: string]: Gun } = {
-  gun: new Gun({
-    radisk: false,
-    localStorage: false,
-    uuid: nanoid,
-    mongo: {
-      host: 'mongo',
-      port: '27017',
-      database: 'gun',
-      collection: 'gun_mongo_key',
-      query: '',
-      opt: {
-        poolSize: 25
-      },
-      chunkSize: 250
-    }
-  })
-}
-db.users = db.gun.get('users')
-
-const User = Type.Record({
-  uid: Type.String.withConstraint(
-    x => /^[A-Za-z0-9_~]{21}$/.test(x) || `Invalid id format: '${x}'`),
-  name: Type.String, // url will be `https://langue.link/user/${name}`
-  email: Type.String.withConstraint(
-    x => isemail.validate(x) || `Invalid email format: '${x}'`),
-  passwordHash: Type.String.withConstraint(
-    x => /^hash:.+$/.test(x) || `Invalid passwordHash format: '${x}'`),
-  isTemporary: Type.Boolean,
-  dateRegistered: Type.Number
-})
-type User = Type.Static<typeof User>
+const keys = JSON.parse(fs.readFileSync('./.secret/.keys.json').toString())
 
 const app = new Koa
 app.listen(8000)
@@ -134,32 +73,6 @@ app.use(async (ctx, next) => {
     await send(ctx, resolve(ctx.path.replace(/^\/(.+)$/, '$1')))
   }
 })
-
-const findUser = async (email: string, password: string) => {
-  if (!Type.String.withConstraint(
-    x => /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(x)
-    || `Invalid password format: ${x}`
-  ).guard(password)) throw new Error('Type inconformity')
-  const node: any = await db.users.get(email).not(() => {
-    process.stdout.write(`User not found or corrupt. Creating: ${email}`)
-    const tmp = nanoid()
-    const newUser: User = {
-      uid: tmp,
-      name: tmp,
-      email,
-      passwordHash: `hash:${password}`,
-      isTemporary: true,
-      dateRegistered: Date.now()
-    }
-    db.users.get(email).put(User.check(newUser))
-  }).load(user => {
-    process.stdout.write(`User found: ${email}`)
-    return user
-  }).then()
-  const account = { ...node }
-  delete account['_']
-  return account
-}
 
 const oidc = new Provider('https://langue.link', {
   features: {
@@ -242,7 +155,7 @@ oidc.initialize({
   router.get('/api/auth/interaction/:grant/login', bodyparser(), async (ctx, next) => {
     console.log('/api/auth/interaction/:grant/login')
     const { email, password } = ctx.session!.cred
-    const account = await findUser(email, password)
+    const account = await DB.findUser(email, password)
     const result = {
       login: {
         account: account.email,
@@ -287,89 +200,55 @@ oidc.initialize({
     changeOrigin: true
   }))
 
-  //process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-  Issuer.useRequest()
   Issuer.discover('http://localhost:7999').then((issuer: any) => {
     process.stdout.write('Discovered issuer.')
     const client = new issuer.Client({
       client_id: 'https://langue.link',
       client_secret: 'secret'
     })
-    passport.use('oidc', new CustomStrategy(async (req: any, done: any) => {
-      console.log('OidcStrategy')
-      const reqParams = client.callbackParams(req)
+
+    router.post('/api/auth/oidc', bodyparser(), async (ctx, next) => {
+      console.log('/api/auth/oidc')
       const sessionKey = 'langue.link'
-      if (reqParams.type && reqParams.type === 'cred') {
-        console.log('authorizationUrl')
-        const params = {
-          state: nanoid(),
-          nonce: nanoid()
-        }
-        req.session[sessionKey] = params
-        const url = client.authorizationUrl(params).replace(/^http:\/\/localhost:7999/, 'https://langue.link')
-        return done(null, { url })
-      } else {
-        console.log('authorizationCallback')
-        const session = req.session[sessionKey]
-        const state = session.state
-        const nonce = session.nonce
-        try {
-          delete req.session[sessionKey]
-        } catch (err) {
-          console.log(err)
-        }
-        const checks = { state, nonce }
-        const result: any = {}
-        result.tokenset = await client.authorizationCallback(
-          `https://${URL_HOST}/api/auth/callback`, reqParams, checks)
-        if (result.tokenset.access_token) {
-          result.userinfo = await client.userinfo(result.tokenset)
-        }
-        // verify here
-        return done(null, result)
+      const params = {
+        state: nanoid(),
+        nonce: nanoid()
       }
-    }))
+      ctx.session![sessionKey] = params
+      const url = client.authorizationUrl(params).replace(/^http:\/\/localhost:7999/, 'https://langue.link')
+      ctx.session!.cred = ctx.request.body
+      ctx.redirect(url)
+      await next()
+    })
+
+    router.get('/api/auth/callback', bodyparser(), async (ctx, next) => {
+      console.log('/api/auth/callback')
+      const reqParams = client.callbackParams(ctx.req)
+      const sessionKey = 'langue.link'
+      const session = ctx.session![sessionKey]
+      const state = session.state
+      const nonce = session.nonce
+      try {
+        delete ctx.session![sessionKey]
+      } catch (err) {
+        console.log(err)
+      }
+      const checks = { state, nonce }
+      const result: any = {}
+      result.tokenset = await client.authorizationCallback(
+        `https://${URL_HOST}/api/auth/callback`, reqParams, checks)
+      if (result.tokenset.access_token) {
+        result.userinfo = await client.userinfo(result.tokenset)
+      }
+      // verify here
+      ctx.body = result
+    })
   }).catch((error: any) => {
     console.log(error)
   })
-
-}). catch (process.stderr.write)
-
-router.post('/api/auth/oidc', bodyparser(), async (ctx, next) => {
-  console.log('/api/auth/oidc')
-  return passport.authenticate('oidc', async (error, result) => {
-    ctx.session!.cred = ctx.request.body
-    ctx.redirect(result.url)
-    await next()
-  })(ctx, next)
+}).catch((error: any) => {
+  console.log(error)
 })
-
-router.get('/api/auth/callback', bodyparser(), async (ctx, next) => {
-  console.log('/api/auth/callback')
-  return passport.authenticate('oidc', (error, { tokenset, userinfo }) => {
-    console.log('auth completed')
-    ctx.body = { tokenset, userinfo }
-  })(ctx, next)
-})
-/*
-passport.use('jwt', new JwtStrategy({
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: 'secret',
-  issuer: 'https://langue.link',
-  audience: 'https://langue.link'
-}, (payload, done) => {
-  // check payload.sub on user database
-  return done(null, { user: 'jwt' }, payload)
-}))
-*/
-/*
-app.get('/api', passport.authenticate('jwt', {
-  session: false
-}), (req, res) => {
-  res.send(`Secure response from ${JSON.stringify(req.user)}`)
-})
-*/
 
 console.log('Listening on port 8000')
-fs.writeFileSync('./trig/online', new Date, 'utf8')
 process.send!('ready')

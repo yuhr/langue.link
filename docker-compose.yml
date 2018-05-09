@@ -78,9 +78,15 @@ services:
     volumes:
       - ./docker/browser-sync/bs-config.js:/var/browser-sync/bs-config.js:ro
       - ./dst:/var/browser-sync/dst:ro
-      - ./docker/app/trig:/var/browser-sync/trig:z
     working_dir: /var/browser-sync
     command: start --config bs-config.js
+
+#  'webpack': # generates `./node_modules`, watches and builds files
+#    container_name: webpack
+#    restart: on-failure
+#    build: ./docker/webpack
+#    volumes:
+#      - ./dst:/var/webpack/dst
 
   'app':
     container_name: app
@@ -97,12 +103,5 @@ services:
       - ./node_modules:/var/app/node_modules:ro
       - ./.secret:/var/app/.secret:ro
       - ./docker/app/ecosystem.config.js:/var/app/ecosystem.config.js:ro
-      - ./docker/app/trig:/var/app/trig:z
     working_dir: /var/app
     command: pm2-runtime start ecosystem.config.js --only development
-#    secrets:
-#      - keys
-#
-#secrets:
-#  keys:
-#    file: ./.keys.json

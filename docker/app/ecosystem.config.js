@@ -6,8 +6,10 @@ module.exports = {
       cwd: '.',
       watch: false,
       wait_ready: true,
-      listen_timeout: 5000,
       node_args: '--harmony',
+      watch_options: {
+        usePolling: true
+      },
       env: {
         NODE_ENV: 'production'
       }
@@ -18,9 +20,11 @@ module.exports = {
       cwd: '.',
       watch: './dst',
       wait_ready: true,
-      listen_timeout: 5000,
       ignore_watch: './dst/public',
       node_args: '--harmony',
+      watch_options: {
+        usePolling: true
+      },
       env: {
         NODE_ENV: 'development'
       }

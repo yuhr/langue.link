@@ -39,7 +39,8 @@ module.exports = [{
           loader: 'babel-loader',
           options: { presets: [['@babel/preset-env', { targets: { node: 'current' } }]] }
         }
-      }
+      },
+      { test: /\.gql$/, use: 'gql-loader' }
     ]
   }
 },

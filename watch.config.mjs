@@ -2,7 +2,7 @@ import chokidar from 'chokidar'
 import child_process from 'child_process'
 
 const options = {
-  './docker/app/ecosystem.config.js': 'docker-compose kill -s HUP app',
+  './docker/app/ecosystem.config.js': 'docker-compose restart app',
   './docker/dnsmasq/*': 'docker-compose kill -s HUP dnsmasq',
   './docker/haproxy/haproxy.cfg': 'docker-compose kill -s HUP haproxy',
   './docker/browser-sync/bs-config.js*': 'docker-compose restart browser-sync'

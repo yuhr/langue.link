@@ -1,14 +1,14 @@
 declare module '*'
 declare module 'gun' {
-  type Options = {
+  export type Options = {
     peers?: string[] | { [peer: string]: {} },
     radisk?: boolean,
     localStorage?: boolean,
     uuid?: boolean,
     [moduleName: string]: any
   }
-  type Data = { [key: string]: Data } | string | number | boolean | null
-  type Ack = {
+  export type Data = { [key: string]: Data } | string | number | boolean | null
+  export type Ack = {
     err?: any,
     ok?: string
   }
