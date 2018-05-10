@@ -98,6 +98,8 @@ services:
       - mongo
     ports:
       - '8000:8000'
+    extra_hosts:
+      - 'langue.link:172.17.0.1'
     volumes:
       - ./dst:/var/app/dst:ro
       - ./node_modules:/var/app/node_modules:ro

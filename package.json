@@ -9,6 +9,7 @@
     "gun": "^0.9.994",
     "gun-mongo": "^0.1.2",
     "gun-mongo-key": "^0.1.4",
+    "https-proxy-agent": "^2.2.1",
     "isemail": "^3.1.2",
     "jsonwebtoken": "^8.2.1",
     "kcors": "^2.2.1",
@@ -103,7 +104,6 @@
     ".watch:chokidar": "nodemon --watch watch.config.mjs --exec 'node --experimental-modules watch.config.mjs'",
     ".watch:webpack": "nodemon --watch webpack.config.js --exec 'webpack --mode development --watch'",
     ".watch:docker": "nodemon --watch docker-compose.yml --exec 'docker-compose up'",
-    ".watch:test": "nodemon --watch test.js --exec 'node test.js'",
     "watch": "nodemon --watch .env-cmdrc --exec 'env-cmd development run-p .watch:*'"
   }
 }

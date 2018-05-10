@@ -44,7 +44,7 @@
     })
     this.submit = async e => {
       e.preventDefault()
-      let res = await fetch('/api/auth/oidc', {
+      const res = await fetch('/api/auth/oidc', {
         method: 'post',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
@@ -54,7 +54,7 @@
             return prev
           }, { type: 'cred' }))
       })
-      let json = await res.json()
+      const json = await res.json()
       console.log(json)
     }
   </script>

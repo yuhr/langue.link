@@ -81,7 +81,7 @@
       }
     ],
     "number-literal-format": true,
-    "object-literal-key-quotes": { "options": ["consistent-as-needed"] }
+    "object-literal-key-quotes": false
     /*
     "no-spaced-func": true,
     "space-unary-ops": {

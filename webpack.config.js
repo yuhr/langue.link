@@ -17,6 +17,7 @@ riot.parsers.css.cssnext = (tagname, css, opts, url) => {
 
 module.exports = [{
   name: 'server',
+  devtool: 'eval-source-map',
   target: 'node',
   externals: [require('webpack-node-externals')()],
   context: __dirname + '/src',

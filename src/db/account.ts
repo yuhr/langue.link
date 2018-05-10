@@ -4,6 +4,8 @@ import 'gun/lib/load'
 import 'gun/lib/not'
 import { graphql, buildSchema } from 'graphql'
 
+import { Context } from 'koa'
+
 import * as Type from 'runtypes'
 import nanoid from 'nanoid'
 import isemail from 'isemail'
@@ -43,9 +45,6 @@ const PasswordRaw = Type.String.withConstraint(
     || `Invalid password format: ${x}`)
 type PasswordRaw = Type.Static<typeof PasswordRaw>
 
-const Username = Type.String
-type Username = Type.Static<typeof Username>
-
 const Email = Type.String.withConstraint(
   x => isemail.validate(x)
     || `Invalid email format: '${x}'`)
@@ -53,10 +52,11 @@ type Email = Type.Static<typeof Email>
 
 const UserInfoRequired = {
   accountId: AccountId,
-  username: Username, // url will be `https://langue.link/user/${name}`
+  username: Type.String, // url will be `https://langue.link/user/${name}`
   email: Email,
-  isVerified: Type.Boolean,
-  dateRegistered: Type.Number
+  email_verified: Type.Boolean,
+  updated_at: Type.Number,
+  registered_at: Type.Number
 }
 const UserInfoOptional = {
   passwordHash: Type.String.withConstraint(
@@ -79,8 +79,9 @@ export class Account {
       accountId: this.accountId,
       username: this.accountId,
       email: 'mail@yuhr.org',
-      isVerified: false,
-      dateRegistered: Date.now()
+      email_verified: false,
+      updated_at: Date.now(),
+      registered_at: Date.now()
     }
   }
   toString() {
@@ -88,6 +89,7 @@ export class Account {
   }
   private async update(userInfo: Partial<UserInfo>) {
     UserInfoPartial.check(userInfo)
+    userInfo.updated_at = Date.now()
     return await new Promise<UserInfo>(resolve => {
       db.accounts.get(this.accountId).put(userInfo as Document, () => {
         resolve(userInfo as UserInfo)
@@ -107,11 +109,10 @@ export class Account {
     return await bcrypt.hash(password, 13)
   }
   static async from(document: Document) {
-    if (UserInfo.guard(document)) {
-      const account = new Account(document.accountId, document)
-      await account.update(document)
-      return account
-    } else throw UserInfo.check(document)
+    const userInfo = UserInfo.check(document)
+    const account = new Account(userInfo.accountId, userInfo)
+    await account.update(userInfo)
+    return account
   }
   static async identify(email: string) {
     UserInfoRequired.email.check(email)
@@ -150,24 +151,15 @@ export class Account {
     return await Account.from(document)
   }
   // CALLBACK BY OIDC PROVIDER
-  static async findById(ctx: any, accountId: string, token: any) {
+  static async findById(ctx: Context, accountId: string, token?: { [key: string]: any}) {
     const account = await Account.find(accountId)
+    //console.log(`token: ${JSON.stringify(token, null, 2)}`)
     return {
       accountId,
-      async claims(use: 'id_token' | 'userinfo', scope: string) {
-        // @param use - can either be "id_token" or "userinfo", depending on
-        //   where the specific claims are intended to be put in.
-        // @param scope - the intended scope, while oidc-provider will mask
-        //   claims depending on the scope automatically you might want to skip
-        //   loading some claims from external resources etc. based on this detail
-        //   or not return them in id tokens but only userinfo and so on.
-        console.log(scope)
-        const { accountId, username, email } = account.userInfo
+      claims: (use: 'id_token' | 'userinfo', scope: string) => {
         return {
           sub: account.accountId,
-          accountId,
-          username,
-          email
+          ... account.userInfo
         }
       }
     }

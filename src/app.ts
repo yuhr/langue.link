@@ -1,4 +1,6 @@
 import fs from 'fs'
+import path from 'path'
+import dns from 'dns'
 import { URLSearchParams } from 'url'
 
 import * as Type from 'runtypes'
@@ -12,11 +14,12 @@ import send from 'koa-send'
 import session from 'koa-session'
 import helmet from 'koa-helmet'
 import proxy from 'koa-proxies'
-import passport from 'koa-passport'
-import { Strategy as CustomStrategy } from 'passport-custom'
+import mount from 'koa-mount'
+import rewrite from 'koa-rewrite'
 
 import Provider from 'oidc-provider'
 import { Issuer } from 'openid-client'
+import httpsProxyAgent from 'https-proxy-agent'
 
 import { Account } from './db/account'
 
@@ -40,6 +43,8 @@ app.use(router.allowedMethods())
 
 // static
 app.use(async (ctx, next) => {
+  console.log(ctx.href)
+  console.log(ctx.headers)
   if (/^\/$/.test(ctx.path)) {
     await helmet.contentSecurityPolicy({
       directives: {
@@ -56,25 +61,24 @@ app.use(async (ctx, next) => {
 app.use(async (ctx, next) => {
   const resolve = (filename: string) => `./dst/static/${filename}`
   switch (true) {
-  case /^\/$/.test(ctx.path):
-    await send(ctx, resolve('index.html'))
+  // if path has ext, send static file
+  case 1 < path.extname(ctx.path).length:
+    console.log(`static: ${ctx.path}`)
+    await send(ctx, resolve(ctx.path.substring(1)))
     break
-  case /^\/index$/.test(ctx.path):
-    ctx.status = 301
-    await send(ctx, '/')
-    break
-  case /^\/.+\.html$/.test(ctx.path):
-    ctx.status = 301
-    await send(ctx, `/${ctx.path.match(/^\/(.+).html$/)![1]}`)
-    break
-  case /^\/api\/.+$/.test(ctx.path):
+  // if path starts with `/api/`, routes api endpoints
+  case ctx.path.startsWith('/api'):
+    console.log(`api: ${ctx.path}`)
     await next()
     break
+  // otherwise send static `index.html`
   default:
-    await send(ctx, resolve(ctx.path.replace(/^\/(.+)$/, '$1')))
+    console.log(`static: ${ctx.path}`)
+    await send(ctx, resolve('index.html'))
   }
 })
 
+process.env.DEBUG = 'oidc-provider:*'
 const oidc = new Provider('https://langue.link', {
   features: {
     devInteractions: false,
@@ -102,8 +106,7 @@ const oidc = new Provider('https://langue.link', {
     address: ['address'],
     email: ['email', 'email_verified'],
     phone: ['phone_number', 'phone_number_verified'],
-    profile: ['birthdate', 'family_name', 'gender', 'given_name', 'locale', 'middle_name', 'name',
-      'nickname', 'picture', 'preferred_username', 'profile', 'updated_at', 'website', 'zoneinfo']
+    profile: ['birthdate', 'gender', 'locale', 'name', 'nickname', 'picture', 'preferred_username', 'profile', 'updated_at', 'website', 'zoneinfo', 'username']
   },
   scopes: ['openid', 'email'],
   cookies: {
@@ -113,6 +116,9 @@ const oidc = new Provider('https://langue.link', {
       interaction: '_grant',
       resume: '_grant',
       state: '_state'
+    },
+    short: {
+      signed: false
     }
   },
   interactionUrl: async (ctx: any, interaction: any) => {
@@ -131,7 +137,6 @@ oidc.initialize({
   oidc.use(helmet())
 
   router.get('/api/auth/interaction/:grant', async (ctx, next) => {
-    console.log('/api/auth/interaction/:grant')
     const details = await oidc.interactionDetails(ctx.req)
     const client = await oidc.Client.find(details.params.client_id)
     if (details.interaction.error === 'login_required') {
@@ -146,9 +151,9 @@ oidc.initialize({
       }
       const params = new URLSearchParams
       for (const key in data) params.append(key, data[key])
-      const url = `${endpoint}?${params.toString()}`
+      const url = `${endpoint}?${params}`
       ctx.redirect(url)
-      ctx.status = 303
+      ctx.status = 302
     } else {
       const endpoint = `https://langue.link/api/auth/interaction/${details.uuid}/confirm`
       const data: { [key: string]: string } = {
@@ -156,15 +161,14 @@ oidc.initialize({
       }
       const params = new URLSearchParams
       for (const key in data) params.append(key, data[key])
-      const url = `${endpoint}?${params.toString()}`
+      const url = `${endpoint}?${params}`
       ctx.redirect(url)
-      ctx.status = 303
+      ctx.status = 302
     }
     await next()
   })
 
   router.get('/api/auth/interaction/:grant/login', bodyparser(), async (ctx, next) => {
-    console.log('/api/auth/interaction/:grant/login')
     const { email, password } = ctx.session!.cred
     const account = await Account.find(await Account.identify(email))
     const result = {
@@ -177,21 +181,21 @@ oidc.initialize({
       },
       consent: {}
     }
-    const id = ctx.cookies.get(oidc.cookieName('interaction'), {
-      signed: false
-    })
+    //await oidc.interactionFinished(ctx.req, ctx.res, result)
+    console.log(`ctx.request.originalUrl: ${ctx.request.originalUrl}`)
+    console.log(`ctx.url: ${ctx.url}`)
+    const id = ctx.cookies.get(oidc.cookieName('interaction'), { signed: false })
     const interaction = await oidc.Session.find(id)
+    console.log(`interaction.returnTo: ${interaction.returnTo}`)
     interaction.result = result
     await interaction.save(60)
-    interaction.returnTo = interaction.returnTo.replace(/^https:\/\/localhost:7999/, 'https://langue.link')
     ctx.session!.accountId = account.accountId
     ctx.redirect(interaction.returnTo)
-    ctx.status = 303
+    ctx.status = 302
     await next()
   })
 
   router.get('/api/auth/interaction/:grant/confirm', bodyparser(), async (ctx, next) => {
-    console.log('/api/auth/interaction/:grant/confirm')
     const result = { consent: {} }
     const id = ctx.cookies.get(oidc.cookieName('interaction'), {
       signed: false
@@ -199,21 +203,18 @@ oidc.initialize({
     const interaction = await oidc.Session.find(id)
     interaction.result = result
     await interaction.save(60)
-    interaction.returnTo = interaction.returnTo.replace(/^https:\/\/localhost:7999/, 'https://langue.link')
     ctx.redirect(interaction.returnTo)
-    ctx.status = 303
+    ctx.status = 302
     await next()
   })
 
-  oidc.app.listen(7999)
-  oidc.app.proxy = true
+  app.proxy = true
+  const prefix = '/api/oidc'
+  app.use(rewrite('/.well-known/(.*)', `${prefix}/.well-known/$1`))
+  app.use(mount(prefix, oidc.app))
 
-  app.use(proxy('/api/oidc/*', {
-    target: 'http://localhost:7999',
-    changeOrigin: true
-  }))
-
-  Issuer.discover('http://localhost:7999').then((issuer: any) => {
+  if (!IS_PROD) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+  Issuer.discover('https://langue.link/api/oidc').then((issuer: any) => {
     process.stdout.write('Discovered issuer.')
     const client = new issuer.Client({
       client_id: 'https://langue.link',
@@ -221,14 +222,15 @@ oidc.initialize({
     })
 
     router.post('/api/auth/oidc', bodyparser(), async (ctx, next) => {
-      console.log('/api/auth/oidc')
       const sessionKey = 'langue.link'
       const params = {
         state: nanoid(),
-        nonce: nanoid()
+        nonce: nanoid(),
+        redirect_uri: 'https://langue.link/api/auth/callback',
+        scope: 'openid email profile'
       }
       ctx.session![sessionKey] = params
-      const url = client.authorizationUrl(params).replace(/^http:\/\/localhost:7999/, 'https://langue.link')
+      const url = client.authorizationUrl(params)
       ctx.session!.cred = ctx.request.body
       ctx.redirect(url)
       ctx.status = 303
@@ -236,7 +238,6 @@ oidc.initialize({
     })
 
     router.get('/api/auth/callback', bodyparser(), async (ctx, next) => {
-      console.log('/api/auth/callback')
       const reqParams = client.callbackParams(ctx.req)
       const sessionKey = 'langue.link'
       const session = ctx.session![sessionKey]
