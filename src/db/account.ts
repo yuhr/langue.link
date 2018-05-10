@@ -1,4 +1,4 @@
-import { default as Gun, Document } from 'gun'
+import { default as Gun, Document, Ack } from 'gun'
 import 'gun-mongo-key'
 import 'gun/lib/load'
 import 'gun/lib/not'
@@ -12,6 +12,7 @@ import isemail from 'isemail'
 import bcrypt from 'bcryptjs'
 
 import schemafile from './account.gql'
+import { ValidationError } from 'runtypes/lib/runtype'
 const schema = buildSchema(schemafile)
 
 const db: { [key: string]: Gun } = {
@@ -83,7 +84,6 @@ export type Credentials = Type.Static<typeof Credentials>
 export class Account {
   readonly accountId: string
   private readonly userInfo: UserInfo
-  toString() { return `Account<${this.accountId}>` }
   private constructor(accountInfo: AccountId | UserInfo) {
     if (AccountId.guard(accountInfo)) {
       this.accountId = accountInfo
@@ -103,13 +103,10 @@ export class Account {
   private async update(userInfo?: Partial<UserInfo>) {
     if (userInfo) Object.assign(this.userInfo, userInfo)
     this.userInfo.updated_at = Date.now()
-    await new Promise(resolve => {
+    const resolve = await new Promise<Ack>(resolve => {
       db.accounts.get(this.accountId).put(this.userInfo, resolve)
     })
-  }
-  async set(password: PasswordRaw) {
-    PasswordRaw.check(password)
-    await this.update({ passwordHash: await Account.generateHashOf(password) })
+    if (resolve.err) throw Error(resolve.err.toString())
   }
   private async match(password: PasswordRaw) {
     return await bcrypt.compare(password, this.userInfo.passwordHash!) // TODO
@@ -123,32 +120,45 @@ export class Account {
   static async findIdFrom(email: Email) {
     Email.check(email)
     const node = db.emails.get(email)
-    const document = await new Promise<Document>(resolve => {
-      node.not(() => {
-        process.stdout.write('Email not found. Creating.')
-        node.put(Account.generateId())
-      }).load(document => {
-        process.stdout.write(`Email found: ${email}`)
-        resolve(document)
-      })
+    const document = await new Promise<Document | undefined>(resolve => {
+      node.once(resolve)
     })
-    return AccountId.check(document)
+    if (document === undefined) {
+      process.stdout.write(`AccountId not found. Creating for: ${email}`)
+      const accountId = Account.generateId()
+      await new Promise(resolve => {
+        node.put(accountId, resolve)
+      })
+      return accountId
+    } else {
+      process.stdout.write(`AccountId found: ${email}`)
+      return AccountId.check(document)
+    }
+  }
+  async register(credentials: Credentials) {
+    Credentials.check(credentials)
+    if (this.userInfo.email !== credentials.email)
+      throw new ValidationError('Email adresses don\'t match.')
+    await this.update({
+      passwordHash: await Account.generateHashOf(credentials.password)
+    })
   }
   async verify(credentials: Credentials) {
     Credentials.check(credentials)
+    if (this.userInfo.email !== credentials.email)
+      throw new ValidationError('Email adresses don\'t match.')
     return await this.match(credentials.password)
   }
-  static async searchBy(accountId: AccountId) {
-    AccountId.check(accountId)
-    console.log('search')
-    const node = db.accounts.get(accountId)
-    const document = await new Promise<Document>(resolve => {
-      node.load(userInfo => {
-        console.log(`userInfo: ${JSON.stringify(userInfo, null, 2)}`)
-        resolve(userInfo)
-      })
+  static async searchBy(accountInfo: AccountId | Email) {
+    const accountId = await Type.match(
+      [Email, async email => await Account.findIdFrom(email)],
+      [AccountId, async accountId => accountId]
+    )(accountInfo)
+    const document = await new Promise<Document | undefined>(resolve => {
+      db.accounts.get(accountId).once(resolve)
     })
-    return await Account.findFrom(UserInfo.check(document))
+    return document === undefined ?
+      document : await Account.findFrom(UserInfo.check(document))
   }
   static async findFrom(accountInfo: AccountId | UserInfo): Promise<Account> {
     return await Type.match(
@@ -159,24 +169,25 @@ export class Account {
       }],
       [AccountId, async accountId => {
         const node = db.accounts.get(accountId)
-        const document = await new Promise<Document>(resolve => {
-          node.not(() => {
-            process.stdout.write('User not found. Creating.')
-            node.put(new Account(accountId).userInfo)
-          }).load(document => {
-            process.stdout.write(`User found: ${accountInfo}`)
-            resolve(document)
-          })
+        const document = await new Promise<Document | undefined>(resolve => {
+          node.once(resolve)
         })
-        return await Account.findFrom(UserInfo.check(document))
+        if (document === undefined) {
+          process.stdout.write('User not found. Creating.')
+          const account = new Account(accountId)
+          await account.update()
+          return account
+        } else {
+          process.stdout.write(`User found: ${AccountId}`)
+          return await Account.findFrom(UserInfo.check(document))
+        }
       }]
     )(accountInfo)
   }
   // CALLBACK BY OIDC PROVIDER
-  static async findById(ctx: Context, accountId: string, token?: { [key: string]: any}) {
-    console.log('findById')
+  static async findById(ctx: Context, accountId: AccountId, token?: { [key: string]: any}) {
+    console.dir(token)
     const userInfo = await Account.searchBy(accountId)
-    console.log(`token: ${JSON.stringify(token, null, 2)}`)
     if (userInfo === undefined) return false
     else return {
       accountId,
@@ -188,4 +199,6 @@ export class Account {
       }
     }
   }
+  // MISC
+  toString() { return `Account<${this.accountId}>` }
 }
