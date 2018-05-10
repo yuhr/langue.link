@@ -3,6 +3,7 @@
   "main": "./dst/app.js",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "connect-modrewrite": "^0.10.2",
     "env-cmd": "^8.0.1",
     "gql-loader": "^1.0.0",
     "graphql": "^0.13.2",
@@ -14,7 +15,9 @@
     "jsonwebtoken": "^8.2.1",
     "kcors": "^2.2.1",
     "koa": "^2.5.1",
+    "koa-body": "^2.5.0",
     "koa-bodyparser": "^4.2.0",
+    "koa-connect": "^2.0.1",
     "koa-helmet": "^4.0.0",
     "koa-mount": "^3.0.0",
     "koa-passport": "^4.0.1",

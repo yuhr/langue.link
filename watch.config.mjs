@@ -3,9 +3,10 @@ import child_process from 'child_process'
 
 const options = {
   './docker/app/ecosystem.config.js': 'docker-compose restart app',
-  './docker/dnsmasq/*': 'docker-compose kill -s HUP dnsmasq',
+  './docker/dnsmasq/*': 'docker-compose restart dnsmasq',
   './docker/haproxy/haproxy.cfg': 'docker-compose kill -s HUP haproxy',
   './docker/browser-sync/bs-config.js*': 'docker-compose restart browser-sync'
+
 }
 
 for (const key in options) {

@@ -48,11 +48,11 @@
         method: 'post',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          Array.prototype.reduce.call(this.root.querySelectorAll('input'), (prev, input) => {
+        body: JSON.stringify(Array.prototype.reduce.call(
+          this.root.querySelectorAll('input'), (prev, input) => {
             prev[input.name] = input.value
             return prev
-          }, { type: 'cred' }))
+          },  { type: 'credentials' }))
       })
       const json = await res.json()
       console.log(json)

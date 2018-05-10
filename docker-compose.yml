@@ -43,6 +43,8 @@ services:
       - 'MONGODB_PASS=pass'
     networks:
       - network
+    ports:
+      - '27017'
     command: mongod --smallfiles
     volumes:
       - ./docker/mongo/db:/data/db
@@ -59,6 +61,8 @@ services:
       - network
     depends_on:
       - mongo
+    ports:
+      - '8081:8081'
 
   'browser-sync':
     container_name: browser-sync
@@ -68,6 +72,12 @@ services:
       - network
     depends_on:
       - app
+    extra_hosts:
+      - 'langue.link:172.17.0.1'
+      - 'www.langue.link:172.17.0.1'
+    ports:
+      - '8001:8001'
+      - '8002:8002'
     volumes:
       - ./docker/browser-sync/bs-config.js:/var/browser-sync/bs-config.js:ro
       - ./dst:/var/browser-sync/dst:ro
@@ -91,10 +101,19 @@ services:
       - mongo
     extra_hosts:
       - 'langue.link:172.17.0.1'
+      - 'www.langue.link:172.17.0.1'
+    ports:
+      - '8000:8000'
     volumes:
       - ./dst:/var/app/dst:ro
       - ./node_modules:/var/app/node_modules:ro
-      - ./.secret:/var/app/.secret:ro
       - ./docker/app/ecosystem.config.js:/var/app/ecosystem.config.js:ro
     working_dir: /var/app
     command: pm2-runtime start ecosystem.config.js --only development
+    secrets:
+      - source: .keys.json
+        target: /var/app/.secret/.keys.json
+
+secrets:
+  .keys.json:
+    file: ./.secret/.keys.json

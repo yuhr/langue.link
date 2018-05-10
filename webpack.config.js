@@ -25,6 +25,7 @@ module.exports = [{
     'app': './app.ts',
   },
   output: {
+    libraryTarget: 'commonjs',
     path: __dirname + '/dst',
     filename: './[name].js'
   },
@@ -50,6 +51,7 @@ module.exports = [{
   context: __dirname + '/src/static',
   entry: {
     'index': './index.ts',
+    'docs/index': './docs/index.ts',
   },
   output: {
     path: __dirname + '/dst/static',

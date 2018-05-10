@@ -45,6 +45,11 @@ const PasswordRaw = Type.String.withConstraint(
     || `Invalid password format: ${x}`)
 type PasswordRaw = Type.Static<typeof PasswordRaw>
 
+const PasswordHash = Type.String.withConstraint(
+  x => /^\$2[aby]?\$[\d]+\$[./A-Za-z0-9]{53}$/.test(x)
+    || `Invalid passwordHash format: '${x}'`)
+type PasswordHash = Type.Static<typeof PasswordHash>
+
 const Email = Type.String.withConstraint(
   x => isemail.validate(x)
     || `Invalid email format: '${x}'`)
@@ -59,9 +64,7 @@ const UserInfoRequired = {
   registered_at: Type.Number
 }
 const UserInfoOptional = {
-  passwordHash: Type.String.withConstraint(
-    x => /^\$2[aby]?\$[\d]+\$[./A-Za-z0-9]{53}$/.test(x)
-      || `Invalid passwordHash format: '${x}'`)
+  passwordHash: PasswordHash
 }
 const UserInfo = Type.Record(UserInfoRequired).And(Type.Partial(UserInfoOptional))
 const UserInfoPartial = Type.Partial(UserInfoRequired).And(Type.Partial(UserInfoOptional))
@@ -70,96 +73,117 @@ type UserInfoPartial = Type.Static<typeof UserInfoPartial>
 export type Document = UserInfo
 export type DocumentPartial = UserInfo
 
+export const Credentials = Type.Record({
+  type: Type.Literal('credentials'),
+  email: Email,
+  password: PasswordRaw
+})
+export type Credentials = Type.Static<typeof Credentials>
+
 export class Account {
   readonly accountId: string
   private readonly userInfo: UserInfo
-  private constructor(accountId?: string, userInfo?: UserInfo) {
-    this.accountId = accountId || nanoid()
-    this.userInfo = userInfo || {
-      accountId: this.accountId,
-      username: this.accountId,
-      email: 'mail@yuhr.org',
-      email_verified: false,
-      updated_at: Date.now(),
-      registered_at: Date.now()
-    }
-  }
-  toString() {
-    return `Account (id: '${this.accountId}')`
-  }
-  private async update(userInfo: Partial<UserInfo>) {
-    UserInfoPartial.check(userInfo)
-    userInfo.updated_at = Date.now()
-    return await new Promise<UserInfo>(resolve => {
-      db.accounts.get(this.accountId).put(userInfo as Document, () => {
-        resolve(userInfo as UserInfo)
-      })
-    })
-  }
-  async setPassword(password: string) {
-    PasswordRaw.check(password)
-    this.update({
-      passwordHash: await Account.generatePasswordHash(password)
-    })
-  }
-  private async matchPassword(password: string) {
-    return await bcrypt.compare(password, this.userInfo.passwordHash!)
-  }
-  private static async generatePasswordHash(password: string) {
-    return await bcrypt.hash(password, 13)
-  }
-  static async from(document: Document) {
-    const userInfo = UserInfo.check(document)
-    const account = new Account(userInfo.accountId, userInfo)
-    await account.update(userInfo)
-    return account
-  }
-  static async identify(email: string) {
-    UserInfoRequired.email.check(email)
-    const node = db.emails.get(email)
-    return await new Promise<string>(resolve => {
-      node.not(() => {
-        node.put(nanoid())
-      }).load(accountId => {
-        resolve(accountId as string)
-      })
-    })
-  }
-  static async login(email: string, password?: string) {
-    const accountId = await Account.identify(email)
-    const account = await Account.find(accountId)
-    if (await account.matchPassword(PasswordRaw.check(password))) {
-      console.log('login success')
+  toString() { return `Account<${this.accountId}>` }
+  private constructor(accountInfo: AccountId | UserInfo) {
+    if (AccountId.guard(accountInfo)) {
+      this.accountId = accountInfo
+      this.userInfo = {
+        accountId: this.accountId,
+        username: this.accountId,
+        email: 'mail@yuhr.org',
+        email_verified: false,
+        updated_at: Date.now(),
+        registered_at: Date.now()
+      }
     } else {
-      console.log('login failed')
+      this.userInfo = accountInfo
+      this.accountId = this.userInfo.accountId
     }
-    return account
   }
-  static async find(accountId?: string) {
-    if (accountId === undefined) accountId = nanoid()
-    UserInfoRequired.accountId.check(accountId)
-    const node = db.accounts.get(accountId!)
+  private async update(userInfo?: Partial<UserInfo>) {
+    if (userInfo) Object.assign(this.userInfo, userInfo)
+    this.userInfo.updated_at = Date.now()
+    await new Promise(resolve => {
+      db.accounts.get(this.accountId).put(this.userInfo, resolve)
+    })
+  }
+  async set(password: PasswordRaw) {
+    PasswordRaw.check(password)
+    await this.update({ passwordHash: await Account.generateHashOf(password) })
+  }
+  private async match(password: PasswordRaw) {
+    return await bcrypt.compare(password, this.userInfo.passwordHash!) // TODO
+  }
+  private static async generateHashOf(password: PasswordRaw) {
+    return await PasswordHash.check(bcrypt.hash(password, 13))
+  }
+  private static generateId() {
+    return AccountId.check(nanoid())
+  }
+  static async findIdFrom(email: Email) {
+    Email.check(email)
+    const node = db.emails.get(email)
     const document = await new Promise<Document>(resolve => {
       node.not(() => {
-        process.stdout.write('User not found or corrupt. Creating.')
-        node.put(new Account(accountId).userInfo)
-      }).load(userInfo => {
-        process.stdout.write(`User found: ${accountId}`)
+        process.stdout.write('Email not found. Creating.')
+        node.put(Account.generateId())
+      }).load(document => {
+        process.stdout.write(`Email found: ${email}`)
+        resolve(document)
+      })
+    })
+    return AccountId.check(document)
+  }
+  async verify(credentials: Credentials) {
+    Credentials.check(credentials)
+    return await this.match(credentials.password)
+  }
+  static async searchBy(accountId: AccountId) {
+    AccountId.check(accountId)
+    console.log('search')
+    const node = db.accounts.get(accountId)
+    const document = await new Promise<Document>(resolve => {
+      node.load(userInfo => {
+        console.log(`userInfo: ${JSON.stringify(userInfo, null, 2)}`)
         resolve(userInfo)
       })
     })
-    return await Account.from(document)
+    return await Account.findFrom(UserInfo.check(document))
+  }
+  static async findFrom(accountInfo: AccountId | UserInfo): Promise<Account> {
+    return await Type.match(
+      [UserInfo, async userInfo => {
+        const account = new Account(userInfo)
+        await account.update()
+        return account
+      }],
+      [AccountId, async accountId => {
+        const node = db.accounts.get(accountId)
+        const document = await new Promise<Document>(resolve => {
+          node.not(() => {
+            process.stdout.write('User not found. Creating.')
+            node.put(new Account(accountId).userInfo)
+          }).load(document => {
+            process.stdout.write(`User found: ${accountInfo}`)
+            resolve(document)
+          })
+        })
+        return await Account.findFrom(UserInfo.check(document))
+      }]
+    )(accountInfo)
   }
   // CALLBACK BY OIDC PROVIDER
   static async findById(ctx: Context, accountId: string, token?: { [key: string]: any}) {
-    const account = await Account.find(accountId)
-    //console.log(`token: ${JSON.stringify(token, null, 2)}`)
-    return {
+    console.log('findById')
+    const userInfo = await Account.searchBy(accountId)
+    console.log(`token: ${JSON.stringify(token, null, 2)}`)
+    if (userInfo === undefined) return false
+    else return {
       accountId,
       claims: (use: 'id_token' | 'userinfo', scope: string) => {
         return {
-          sub: account.accountId,
-          ... account.userInfo
+          sub: accountId,
+          ... userInfo
         }
       }
     }

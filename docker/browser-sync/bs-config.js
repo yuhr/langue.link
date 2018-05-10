@@ -13,6 +13,6 @@ module.exports = {
   cors: true,
   reloadOnRestart: true,
   socket: {
-    domain: 'langue.link'
+    domain: 'https://langue.link'
   }
 }
