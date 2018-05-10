@@ -43,8 +43,6 @@ services:
       - 'MONGODB_PASS=pass'
     networks:
       - network
-    ports:
-      - '27017:27017'
     command: mongod --smallfiles
     volumes:
       - ./docker/mongo/db:/data/db
@@ -61,8 +59,6 @@ services:
       - network
     depends_on:
       - mongo
-    ports:
-      - '8081:8081'
 
   'browser-sync':
     container_name: browser-sync
@@ -72,9 +68,6 @@ services:
       - network
     depends_on:
       - app
-    ports:
-      - '8001:8001'
-      - '8002:8002'
     volumes:
       - ./docker/browser-sync/bs-config.js:/var/browser-sync/bs-config.js:ro
       - ./dst:/var/browser-sync/dst:ro
@@ -96,8 +89,6 @@ services:
       - network
     depends_on:
       - mongo
-    ports:
-      - '8000:8000'
     extra_hosts:
       - 'langue.link:172.17.0.1'
     volumes:

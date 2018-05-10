@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import dns from 'dns'
 import { URLSearchParams } from 'url'
 
 import * as Type from 'runtypes'
@@ -13,7 +12,6 @@ import cors from 'kcors'
 import send from 'koa-send'
 import session from 'koa-session'
 import helmet from 'koa-helmet'
-import proxy from 'koa-proxies'
 import mount from 'koa-mount'
 import rewrite from 'koa-rewrite'
 
@@ -43,8 +41,6 @@ app.use(router.allowedMethods())
 
 // static
 app.use(async (ctx, next) => {
-  console.log(ctx.href)
-  console.log(ctx.headers)
   if (/^\/$/.test(ctx.path)) {
     await helmet.contentSecurityPolicy({
       directives: {
