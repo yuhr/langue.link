@@ -30,8 +30,10 @@ And make sure not using these ports before starting development.
 
 - `53/tcp`
 - `53/udp`
-- `80/tcp`
-- `443/tcp`
+- `80`
+- `443`
+- `8002`
+- `8081`
 
 After `git clone`d the repo, you'd better check these points:
 

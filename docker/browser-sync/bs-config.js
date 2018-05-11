@@ -14,5 +14,15 @@ module.exports = {
   reloadOnRestart: true,
   socket: {
     domain: 'https://langue.link'
+  },
+  watchOptions: {
+    usePolling: true
+  },
+  snippetOptions: {
+    // Provide a custom Regex for inserting the snippet.
+    rule: {
+        match: /$/,
+        fn: (snippet, match) => snippet
+    }
   }
 }

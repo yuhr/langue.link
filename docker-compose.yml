@@ -70,11 +70,7 @@ services:
       - network
     depends_on:
       - app
-    extra_hosts:
-      - 'langue.link:172.17.0.1'
-      - 'www.langue.link:172.17.0.1'
     ports:
-      - '8001:8001'
       - '8002:8002'
     volumes:
       - ./docker/browser-sync/bs-config.js:/var/browser-sync/bs-config.js:ro
@@ -100,8 +96,6 @@ services:
     extra_hosts:
       - 'langue.link:172.17.0.1'
       - 'www.langue.link:172.17.0.1'
-    ports:
-      - '8000:8000'
     volumes:
       - ./dst:/var/app/dst:ro
       - ./node_modules:/var/app/node_modules:ro
