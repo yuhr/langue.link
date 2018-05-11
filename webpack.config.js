@@ -2,8 +2,12 @@ const IS_PROD = 'production' === process.env.NODE_ENV
 
 const postcss_plugins = [
   require('postcss-import-sync')({ root: './src/static/tags', addDependencyTo: 'webpack' }),
-  require('postcss-nesting')(),
-  require('postcss-cssnext')({ browsers: ['last 2 versions'] })
+  require('postcss-nested')(),
+  require('postcss-hexrgba')(),
+  require('postcss-cssnext')({
+    browsers: ['last 2 versions'],
+    features: { rem: { html: false } }
+  })
 ]
 
 const riot = require('riot')

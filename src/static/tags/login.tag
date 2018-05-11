@@ -1,9 +1,11 @@
 <login>
+  <!--
   <button class="icon" action="/api/auth/github">
     <svg xmlns="http://www.w3.org/2000/svg">
       <use xlink:href="/icons/svg-symbols.svg#icons-github" />
     </svg>
   </button>
+  -->
   <form onsubmit={ submit }>
     <input type="email" name="email" placeholder="Email" required autofocus="on">
     <input type="password" name="password" placeholder="Password" required pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).\{8,\}$">
@@ -13,20 +15,20 @@
     @import '../schema.css';
     :scope {
       display: block;
-      margin: calc(4 * var(--unit-margin)) 10%;
-      padding: var(--unit-margin);
+      margin: 4mm 10%;
+      padding: 1mm;
       box-sizing: border-box;
-      border: solid var(--unit-border-input) var(--color-border-input);
-      border-radius: calc(var(--unit-radius-input) + var(--unit-margin));
+      border: solid 0.3mm var(--color-border-input);
+      border-radius: 2mm;
     }
     svg {
       vertical-align: middle;
       max-width: 100%;
       max-height: 100%;
       padding: 0.25em 0 0.4em;
-      width: var(--unit-height-control);
+      width: 2.25rem;
       box-sizing: border-box;
-      & use {
+      * {
         fill: white;
       }
     }

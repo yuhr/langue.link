@@ -9,19 +9,19 @@ input:focus { outline: none; }
 
 html {
   height: 100%;
-}
-html, body {
-  width: 100%;
-  font: 400 var(--unit-font-size)/1.75em sans-serif;
+  font: 400 3.75mm/1.75rem 'Varela Round';
   font-feature-settings: 'palt','hkna','ccmp','liga','kern','clig','calt';
   font-kerning: normal;
   font-variant: common-ligatures contextual;
   text-rendering: geometricPrecision;
-  -webkit-text-size-adjust: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  text-size-adjust: 100%;
   color: var(--color-text);
   background-color: var(--color-background);
+}
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 body {
   min-height: 100%;
@@ -31,66 +31,62 @@ body {
 
 main {
   flex: 1;
-  padding-top: var(--unit-width-ribbon);
+  padding-top: 3rem;
 }
 
 input {
-  border: solid var(--unit-border-input) var(--color-border-input);
+  font: 0.85rem 'Varela Round', sans-serif;
+  border: solid 0.3mm var(--color-border-input);
   color: var(--color-text);
   background-color: var(--color-background-input);
-  border-radius: var(--unit-radius-input);
-  margin: var(--unit-margin);
+  border-radius: 1mm;
+  margin: 1mm;
   display: inline-block;
-  height: var(--unit-height-control);
+  height: 2.25rem;
   padding: 0 0.75em;
   box-sizing: border-box;
   position: relative;
-  width: calc(100% - var(--unit-margin) * 2);
-  font: var(--unit-font-size-button) 'Varela Round', sans-serif;
+  width: calc(100% - 2mm);
   letter-spacing: 0.05em;
-  transition: border var(--duration-transition-hover);
+  transition: border 0.25s;
   &::placeholder {
     color: var(--color-text-placeholder);
-    transition: color var(--duration-transition-hover);
+    transition: color 0.25s;
   }
   &:hover::placeholder {
     color: color(var(--color-text-placeholder) blackness(+25%));
   }
   &:focus {
-    border: solid calc(2 * var(--unit-border-input)) var(--color-border-accent);
+    border: solid 0.6mm var(--color-border-accent);
   }
 }
 
 button {
+  font: 0.85rem 'Varela Round', sans-serif;
   border: none;
   color: var(--color-text-invert);
   background-color: var(--color-background-button-accent);
-  border-radius: var(--unit-radius-input);
-  margin: var(--unit-margin);
+  border-radius: 1mm;
+  margin: 1mm;
   display: inline-block;
   user-select: none;
-  height: var(--unit-height-control);
+  height: 2.25rem;
   padding: 0 1.5em;
-  font: var(--unit-font-size-button) 'Varela Round', sans-serif;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  transition: background-color var(--duration-transition-hover);
+  transition: background-color 0.25s;
   &:hover {
-    background-color: color(var(--color-background-button-accent) blackness(+25%));
+    background-color: color(var(--color-background-button-accent) lightness(+10%));
   }
 }
 
 a {
   text-decoration: none;
   color: var(--color-text-link);
-  transition: color var(--duration-transition-hover);
+  transition: color 0.25s;
   &:hover {
     color: color(var(--color-text-link) blackness(+25%));
   }
-}
-
-span.lg_note {
-  color: var(--color-text-note);
 }
 
 footer {

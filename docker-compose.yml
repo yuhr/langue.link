@@ -6,7 +6,6 @@ services:
   'dnsmasq':
     restart: on-failure
     image: andyshinn/dnsmasq
-    container_name: dnsmasq
     ports:
       - '53:53/udp'
       - '53:53/tcp'
@@ -18,7 +17,6 @@ services:
       - NET_ADMIN
 
   'haproxy':
-    container_name: haproxy
     restart: on-failure
     image: haproxy:alpine
     networks:

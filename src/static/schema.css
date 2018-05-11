@@ -20,16 +20,4 @@
   --color-background-button-accent: var(--palette-accent-dark);
   --color-border-accent: var(--palette-accent-dark);
   --color-border-input: var(--palette-fore-sub);
-
-  --unit-minimal: 0.25mm;
-  --unit-height-control: 2.25rem;
-  --unit-width-colorline: 0.5mm;
-  --unit-width-ribbon: 3rem;
-  --unit-border-input: 0.3mm;
-  --unit-radius-input: 1mm;
-  --unit-margin: 1mm;
-  --unit-font-size: 3.75mm;
-  --unit-font-size-button: 0.85rem;
-
-  --duration-transition-hover: 0.25s;
 }

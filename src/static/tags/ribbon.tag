@@ -10,10 +10,11 @@
       align-content: space-between;
       align-items: center;
       width: 100%;
-      height: var(--unit-width-ribbon);
+      height: 3rem;
+      padding: 0 5mm;
       box-sizing: border-box;
       background-color: var(--color-background);
-      & > * {
+      > * {
         display: inline-block;
         flex: 0 0 auto;
         height: 3rem;
@@ -22,7 +23,7 @@
         content: '';
         display: block;
         width: 100%;
-        height: var(--unit-width-colorline);
+        height: 0.5mm;
         position: absolute;
         bottom: 0;
         right: 0;
@@ -43,14 +44,19 @@
       justify-content: center;
       align-content: center;
       align-items: center;
+      color: rgba(#666460, 0.9);
       & > span {
         letter-spacing: 0.1em;
-        font: 400 var(--unit-font-size)/1em 'Varela Round', sans-serif;
+        font: 400 1rem/1em 'Varela Round', sans-serif;
         text-transform: uppercase;
         padding: 0 1em;
         &::first-letter {
           letter-spacing: 0.125em;
         }
+        text-shadow:
+          -1px -1px color(var(--palette-fore) l(+25%) s(+100%) h(+140%) a(-50%)),
+          -1px 1px color(var(--palette-fore) l(+25%) s(+100%) h(+20%) a(-50%)),
+          1px 0 color(var(--palette-fore) l(+25%) s(+100%) h(-90%) a(-50%));
       }
     }
   </style>
