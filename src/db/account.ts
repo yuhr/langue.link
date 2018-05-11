@@ -1,40 +1,17 @@
-import { default as Gun, Document, Ack } from 'gun'
-import 'gun-mongo-key'
-import 'gun/lib/load'
-import 'gun/lib/not'
-import { graphql, buildSchema } from 'graphql'
-
 import { Context } from 'koa'
 
 import * as Type from 'runtypes'
+import { ValidationError } from 'runtypes/lib/runtype'
 import nanoid from 'nanoid'
 import isemail from 'isemail'
 import bcrypt from 'bcryptjs'
 
-import schemafile from './account.gql'
-import { ValidationError } from 'runtypes/lib/runtype'
-const schema = buildSchema(schemafile)
+import { Database } from '.'
 
-const db: { [key: string]: Gun } = {
-  gun: new Gun({
-    radisk: false,
-    localStorage: false,
-    uuid: nanoid,
-    mongo: {
-      host: 'mongo',
-      port: '27017',
-      database: 'gun',
-      collection: 'gun_mongo_key',
-      query: '',
-      opt: {
-        poolSize: 25
-      },
-      chunkSize: 250
-    }
-  })
+const db = {
+  accounts: new Database('accounts'),
+  emails: new Database('emails')
 }
-db.accounts = db.gun.get('accounts')
-db.emails = db.gun.get('emails')
 
 export const AccountId = Type.String.withConstraint(
   x => /^[A-Za-z0-9_~]{21}$/.test(x)
@@ -67,8 +44,8 @@ const UserInfoRequired = {
 const UserInfoOptional = {
   passwordHash: PasswordHash
 }
-const UserInfo = Type.Record(UserInfoRequired).And(Type.Partial(UserInfoOptional))
-const UserInfoPartial = Type.Partial(UserInfoRequired).And(Type.Partial(UserInfoOptional))
+export const UserInfo = Type.Record(UserInfoRequired).And(Type.Partial(UserInfoOptional))
+export const UserInfoPartial = Type.Partial(UserInfoRequired).And(Type.Partial(UserInfoOptional))
 export type UserInfo = Type.Static<typeof UserInfo>
 export type UserInfoPartial = Type.Static<typeof UserInfoPartial>
 
@@ -101,10 +78,7 @@ export class Account {
   private async update(userInfo?: Partial<UserInfo>) {
     if (userInfo) Object.assign(this.userInfo, userInfo)
     this.userInfo.updated_at = Date.now()
-    const resolve = await new Promise<Ack>(resolve => {
-      db.accounts.get(this.accountId).put(this.userInfo, resolve)
-    })
-    if (resolve.err) throw Error(resolve.err.toString())
+    await db.accounts.set(this.accountId, this.userInfo)
   }
   private async match(password: PasswordRaw) {
     return await bcrypt.compare(password, this.userInfo.passwordHash!) // TODO
@@ -117,16 +91,11 @@ export class Account {
   }
   static async findIdFrom(email: Email) {
     Email.check(email)
-    const node = db.emails.get(email)
-    const document = await new Promise<Document | undefined>(resolve => {
-      node.load(resolve)
-    })
+    const document = await db.emails.get(email)
     if (document === undefined) {
       const accountId = Account.generateId()
       process.stdout.write(`AccountId not found. Creating: ${email}: ${accountId}`)
-      await new Promise(resolve => {
-        node.put(accountId, resolve)
-      })
+      await db.emails.set(email, accountId)
       return accountId
     } else {
       const accountId = AccountId.check(document)
@@ -154,9 +123,7 @@ export class Account {
       [AccountId, async accountId => accountId],
       [Type.Always, x => { throw new ValidationError('Expected AccountId or Email.') }]
     )(accountInfo)
-    const document = await new Promise<Document | undefined>(resolve => {
-      db.accounts.get(accountId).load(resolve)
-    })
+    const document = await db.accounts.get(accountId)
     return document === undefined ?
       document : await Account.findBy(UserInfo.check(document))
   }
@@ -169,9 +136,7 @@ export class Account {
       }],
       [AccountId, async accountId => {
         const node = db.accounts.get(accountId)
-        const document = await new Promise<Document | undefined>(resolve => {
-          node.load(resolve)
-        })
+        const document = await db.accounts.get(accountId)
         if (document === undefined) {
           process.stdout.write(`Account not found. Creating: ${accountId}`)
           const account = new Account(accountId)
