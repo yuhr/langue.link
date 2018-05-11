@@ -612,7 +612,7 @@
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@types/http-assert/-/http-assert-1.2.2.tgz#17dfe5a82184a8898935d96fe2eaedd37d22d9a4"
 
-"@types/jsonwebtoken@*", "@types/jsonwebtoken@^7.2.7":
+"@types/jsonwebtoken@^7.2.7":
   version "7.2.7"
   resolved "https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-7.2.7.tgz#5dd62e0c0a0c6f211c3c1d13d322360894625b47"
   dependencies:
@@ -651,13 +651,6 @@
   dependencies:
     "@types/koa" "*"
 
-"@types/koa-passport@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@types/koa-passport/-/koa-passport-4.0.1.tgz#63fcf1631fa570c1fa0ccb42bfe9a9ffbd2d7aed"
-  dependencies:
-    "@types/koa" "*"
-    "@types/passport" "*"
-
 "@types/koa-router@^7.0.28":
   version "7.0.28"
   resolved "https://registry.yarnpkg.com/@types/koa-router/-/koa-router-7.0.28.tgz#67487c862a831099aed8864a8996bfa7e989edc0"
@@ -692,61 +685,11 @@
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-2.0.0.tgz#5a7306e367c539b9f6543499de8dd519fac37a8b"
 
-"@types/node-fetch@^1.6.9":
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-1.6.9.tgz#a750fb0f4cf2960bf72b462e4c86908022dd69c5"
-  dependencies:
-    "@types/node" "*"
-
 "@types/node@*", "@types/node@^10.0.4":
   version "10.0.6"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.0.6.tgz#c0bce8e539bf34c1b850c13ff46bead2fecc2e58"
 
-"@types/passport-github@^1.1.3":
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/@types/passport-github/-/passport-github-1.1.3.tgz#3a1870b917952f209d3d33e97eb5e3f458bca660"
-  dependencies:
-    "@types/express" "*"
-    "@types/passport" "*"
-
-"@types/passport-http-bearer@^1.0.32":
-  version "1.0.33"
-  resolved "https://registry.yarnpkg.com/@types/passport-http-bearer/-/passport-http-bearer-1.0.33.tgz#68d6df93db17a2abf58925efbfdeb3b7c2e0fdf5"
-  dependencies:
-    "@types/express" "*"
-    "@types/passport" "*"
-
-"@types/passport-jwt@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@types/passport-jwt/-/passport-jwt-3.0.1.tgz#bc4c2610815565de977ea1a580c047d71c646084"
-  dependencies:
-    "@types/express" "*"
-    "@types/jsonwebtoken" "*"
-    "@types/passport-strategy" "*"
-
-"@types/passport-local@^1.0.33":
-  version "1.0.33"
-  resolved "https://registry.yarnpkg.com/@types/passport-local/-/passport-local-1.0.33.tgz#d245b60c5b801cb3aeca1ffab557d5fe1534260d"
-  dependencies:
-    "@types/express" "*"
-    "@types/passport" "*"
-    "@types/passport-strategy" "*"
-
-"@types/passport-strategy@*":
-  version "0.2.33"
-  resolved "https://registry.yarnpkg.com/@types/passport-strategy/-/passport-strategy-0.2.33.tgz#a523c6526262f96d9e4063d9285721551d87889b"
-  dependencies:
-    "@types/express" "*"
-    "@types/passport" "*"
-
-"@types/passport-twitter@^1.0.34":
-  version "1.0.34"
-  resolved "https://registry.yarnpkg.com/@types/passport-twitter/-/passport-twitter-1.0.34.tgz#2e06ac0f57e01362e4bac3f806f4768376ad4607"
-  dependencies:
-    "@types/express" "*"
-    "@types/passport" "*"
-
-"@types/passport@*", "@types/passport@^0.4.5":
+"@types/passport@^0.4.5":
   version "0.4.5"
   resolved "https://registry.yarnpkg.com/@types/passport/-/passport-0.4.5.tgz#a6dd5bd2f96f2f15d350a688c3f59aa16d101c7a"
   dependencies:
@@ -2302,7 +2245,7 @@ cloneable-readable@^1.0.0:
     process-nextick-args "^2.0.0"
     readable-stream "^2.3.5"
 
-co-body@^5.1.0, co-body@^5.1.1:
+co-body@^5.1.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/co-body/-/co-body-5.2.0.tgz#5a0a658c46029131e0e3a306f67647302f71c124"
   dependencies:
@@ -3338,10 +3281,6 @@ event-stream@~3.3.0:
     stream-combiner "~0.0.4"
     through "~2.3.1"
 
-eventemitter3@^3.0.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-3.1.0.tgz#090b4d6cdbd645ed10bf750d4b5407942d7ba163"
-
 events@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/events/-/events-1.1.1.tgz#9ebdb7635ad099c70dcc4c2a1f5004288e8bd924"
@@ -3604,12 +3543,6 @@ flush-write-stream@^1.0.0:
     inherits "^2.0.1"
     readable-stream "^2.0.4"
 
-follow-redirects@^1.0.0:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.4.1.tgz#d8120f4518190f55aac65bb6fc7b85fcd666d6aa"
-  dependencies:
-    debug "^3.1.0"
-
 for-in@^1.0.1, for-in@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
@@ -3635,10 +3568,6 @@ form-data@~2.3.1:
     asynckit "^0.4.0"
     combined-stream "1.0.6"
     mime-types "^2.1.12"
-
-formidable@^1.1.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/formidable/-/formidable-1.2.1.tgz#70fb7ca0290ee6ff961090415f4b3df3d2082659"
 
 fragment-cache@^0.2.1:
   version "0.2.1"
@@ -4248,21 +4177,6 @@ http-errors@1.6.3, http-errors@^1.2.8, http-errors@^1.3.1, http-errors@^1.4.0, h
     setprototypeof "1.1.0"
     statuses ">= 1.4.0 < 2"
 
-http-errors@~1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.4.0.tgz#6c0242dea6b3df7afda153c71089b31c6e82aabf"
-  dependencies:
-    inherits "2.0.1"
-    statuses ">= 1.2.1 < 2"
-
-http-proxy@^1.16.2:
-  version "1.17.0"
-  resolved "https://registry.yarnpkg.com/http-proxy/-/http-proxy-1.17.0.tgz#7ad38494658f84605e2f6db4436df410f4e5be9a"
-  dependencies:
-    eventemitter3 "^3.0.0"
-    follow-redirects "^1.0.0"
-    requires-port "^1.0.0"
-
 http-signature@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/http-signature/-/http-signature-1.2.0.tgz#9aecd925114772f3d95b65a60abb8f7c18fbace1"
@@ -4331,6 +4245,20 @@ ignore-walk@^3.0.1:
 ignore@^3.3.5:
   version "3.3.8"
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-3.3.8.tgz#3f8e9c35d38708a3a7e0e9abb6c73e7ee7707b2b"
+
+import-glob-loader2@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/import-glob-loader2/-/import-glob-loader2-1.1.2.tgz#044a9679cc0f164386e721294f8577e5004c6b00"
+  dependencies:
+    glob "^5.0.13"
+    loader-utils "^1.1.0"
+
+import-glob-loader@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/import-glob-loader/-/import-glob-loader-1.1.0.tgz#98d84c0f661c8ba9f821d9ddb7c6b6dc8e97eca2"
+  dependencies:
+    glob "^5.0.13"
+    loader-utils "^0.2.10"
 
 import-glob@^1.5.0:
   version "1.5.0"
@@ -5040,13 +4968,6 @@ klaw@^1.0.0:
   optionalDependencies:
     graceful-fs "^4.1.9"
 
-koa-body@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/koa-body/-/koa-body-2.5.0.tgz#84e8fcd8d5229a8cc1cb98a926e939069e716915"
-  dependencies:
-    co-body "^5.1.1"
-    formidable "^1.1.1"
-
 koa-bodyparser@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/koa-bodyparser/-/koa-bodyparser-4.2.0.tgz#bce6e08bc65f8709b6d1faa9411c7f0d8938aa54"
@@ -5063,10 +4984,6 @@ koa-compose@^3.0.0, koa-compose@^3.2.1:
 koa-compose@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/koa-compose/-/koa-compose-4.0.0.tgz#2800a513d9c361ef0d63852b038e4f6f2d5a773c"
-
-koa-connect@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/koa-connect/-/koa-connect-2.0.1.tgz#2acad159c33862de1d73aa4562a48de13f137c0f"
 
 koa-convert@^1.2.0:
   version "1.2.0"
@@ -5091,19 +5008,6 @@ koa-mount@^3.0.0:
   dependencies:
     debug "^2.6.1"
     koa-compose "^3.2.1"
-
-koa-passport@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/koa-passport/-/koa-passport-4.0.1.tgz#ffe41c62d3bbdc5f7c49c375dcf9606e9297a337"
-  dependencies:
-    passport "^0.4.0"
-
-koa-proxies@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/koa-proxies/-/koa-proxies-0.7.0.tgz#868a47aebad6d8a3c19aa0f4c03fa2a518ffbd2a"
-  dependencies:
-    http-proxy "^1.16.2"
-    path-match "^1.2.4"
 
 koa-rewrite@^3.0.0:
   version "3.0.1"
@@ -5298,6 +5202,15 @@ load-json-file@^4.0.0:
 loader-runner@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/loader-runner/-/loader-runner-2.3.0.tgz#f482aea82d543e07921700d5a46ef26fdac6b8a2"
+
+loader-utils@^0.2.10:
+  version "0.2.17"
+  resolved "https://registry.yarnpkg.com/loader-utils/-/loader-utils-0.2.17.tgz#f86e6374d43205a6e6c60e9196f17c0299bfb348"
+  dependencies:
+    big.js "^3.1.3"
+    emojis-list "^2.0.0"
+    json5 "^0.5.0"
+    object-assign "^4.0.1"
 
 loader-utils@^1.0.2, loader-utils@^1.0.3, loader-utils@^1.1.0:
   version "1.1.0"
@@ -6579,18 +6492,11 @@ path-key@^2.0.0, path-key@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/path-key/-/path-key-2.0.1.tgz#411cadb574c5a140d3a4b1910d40d80cc9f40b40"
 
-path-match@^1.2.4:
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/path-match/-/path-match-1.2.4.tgz#a62747f3c7e0c2514762697f24443585b09100ea"
-  dependencies:
-    http-errors "~1.4.0"
-    path-to-regexp "^1.0.0"
-
 path-parse@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.5.tgz#3c1adf871ea9cd6c9431b6ea2bd74a0ff055c4c1"
 
-path-to-regexp@^1.0.0, path-to-regexp@^1.1.1:
+path-to-regexp@^1.1.1:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-1.7.0.tgz#59fde0f435badacba103a84e9d3bc64e96b9937d"
   dependencies:
@@ -7760,10 +7666,6 @@ require_optional@~1.0.0:
     resolve-from "^2.0.0"
     semver "^5.1.0"
 
-requires-port@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
-
 resolve-cwd@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/resolve-cwd/-/resolve-cwd-2.0.0.tgz#00a9f7387556e27038eae232caa372a6a59b665a"
@@ -8264,7 +8166,7 @@ static-extend@^0.1.1:
     define-property "^0.2.5"
     object-copy "^0.1.0"
 
-"statuses@>= 1.2.1 < 2", "statuses@>= 1.4.0 < 2", statuses@^1.2.0:
+"statuses@>= 1.4.0 < 2", statuses@^1.2.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-1.5.0.tgz#161c7dac177659fd9811f43771fa99381478628c"
 

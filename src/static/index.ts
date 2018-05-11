@@ -7,8 +7,5 @@ import './imgs/langue.link.svg'
 import './icons/svg-symbols.svg'
 
 import * as riot from 'riot'
-import './tags/ribbon.tag'
-import './tags/content.tag'
-import './tags/login.tag'
-import './tags/home.tag'
+import './tags/*.tag'
 riot.mount('*')

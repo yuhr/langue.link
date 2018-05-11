@@ -20,7 +20,7 @@ module.exports = {
       cwd: '.',
       watch: './dst',
       wait_ready: true,
-      ignore_watch: './dst/public',
+      ignore_watch: './dst/static',
       node_args: '--harmony',
       watch_options: {
         usePolling: true

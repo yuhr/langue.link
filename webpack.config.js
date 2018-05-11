@@ -29,18 +29,19 @@ module.exports = [{
     path: __dirname + '/dst',
     filename: './[name].js'
   },
-  resolve: { extensions: ['.js', '.ts'] },
+  resolve: { extensions: ['.ts'] },
   module: {
     rules: [
-      { test: /\.ts$/, enforce: 'pre', exclude: /node_modules/, use: 'ts-loader' },
       {
-        test: /\.(?:js|ts)$/,
-        enforce: 'post',
+        test: /\.ts$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: { presets: [['@babel/preset-env', { targets: { node: 'current' } }]] }
-        }
+        use: [
+          {
+            loader: 'babel-loader',
+            options: { presets: [['@babel/preset-env', { targets: { node: 'current' } }]] }
+          },
+          'ts-loader'
+        ]
       },
       { test: /\.gql$/, use: 'gql-loader' }
     ]
@@ -74,7 +75,7 @@ module.exports = [{
           },
         ]
       },
-      { test: /\.ts$/, enforce: 'pre', exclude: /node_modules/, use: 'ts-loader' },
+      { test: /\.ts$/, enforce: 'pre', exclude: /node_modules/, use: ['ts-loader','import-glob'] },
       {
         test: /\.(?:js|ts|tag)$/,
         enforce: 'post',

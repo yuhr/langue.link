@@ -25,6 +25,7 @@ const IS_PROD = 'production' === process.env.NODE_ENV
 const keys = JSON.parse(fs.readFileSync('./.secret/.keys.json', 'utf8'))
 
 const app = new Koa
+app.proxy = true
 app.listen(8000)
 
 app.keys = ['a', 'b', 'c']
@@ -73,7 +74,6 @@ app.use(async (ctx, next) => {
   } else await send(ctx, resolve('/index.html'))
 })
 
-process.env.DEBUG = 'oidc-provider:*'
 const oidc = new Provider('https://langue.link', {
   features: {
     devInteractions: false,
@@ -81,8 +81,7 @@ const oidc = new Provider('https://langue.link', {
     introspection: true,
     registration: true,
     request: true,
-    revocation: true,
-    sessionManagement: true
+    revocation: true
   },
   routes: {
     authorization: '/auth',
@@ -121,7 +120,26 @@ const oidc = new Provider('https://langue.link', {
     ui_locales_supported: undefined
   },
   interactionUrl: async (ctx: any, interaction: any) => {
-    return `https://langue.link/api/auth/interaction/${ctx.oidc.uuid}`
+    return `/api/auth/interaction/${ctx.oidc.uuid}`
+  },
+  interactionCheck: async (ctx: any) => {
+    if (!ctx.oidc.session.sidFor(ctx.oidc.client.clientId)) {
+      return {
+        error: 'consent_required',
+        error_description: 'client not authorized for End-User session yet',
+        reason: 'client_not_authorized'
+      }
+    } else if (
+      ctx.oidc.client.applicationType === 'native' &&
+      ctx.oidc.params.response_type !== 'none' &&
+      !ctx.oidc.result) { // TODO: in 3.x require consent to be passed in results
+      return {
+        error: 'interaction_required',
+        error_description: 'native clients require End-User interaction',
+        reason: 'native_client_prompt'
+      }
+    }
+    return false
   },
   findById: Account.findById
 })
@@ -129,16 +147,14 @@ oidc.initialize({
   clients: [{
     client_id: keys.OIDC_LANGUE_CLIENT_ID,
     client_secret: keys.OIDC_LANGUE_CLIENT_SECRET,
-    redirect_uris: ['https://langue.link/api/auth/callback'],
-    scope: 'openid email'
+    redirect_uris: ['https://langue.link/api/auth/callback']
   }]
 }).then((provider: any) => {
-  app.proxy = true
   const prefix = '/api/oidc'
   app.use(rewrite('/.well-known/(.*)', `${prefix}/.well-known/$1`))
   app.use(mount(prefix, oidc.app))
 
-  router.get('/api/auth/interaction/:grant', async (ctx, next) => {
+  router.get('/api/auth/interaction/:grant', async ctx => {
     const details = await oidc.interactionDetails(ctx.req)
     //const client = await oidc.Client.find(details.params.client_id)
     // TODO: response a login form html
@@ -157,7 +173,6 @@ oidc.initialize({
       for (const key in data) params.append(key, data[key])
       const url = `${endpoint}?${params}`
       ctx.redirect(url)
-      ctx.status = 302
     } else {
       const endpoint = `https://langue.link/api/auth/interaction/${details.uuid}/confirm`
       const data: { [key: string]: string } = {
@@ -167,16 +182,15 @@ oidc.initialize({
       for (const key in data) params.append(key, data[key])
       const url = `${endpoint}?${params}`
       ctx.redirect(url)
-      ctx.status = 302
     }
   })
 
-  router.get('/api/auth/interaction/:grant/login', async (ctx, next) => {
-    console.log(ctx.query)
+  router.get('/api/auth/interaction/:grant/login', async ctx => {
+    //console.log(ctx.query)
     const { email, password } = ctx.session!.credentials
     delete ctx.session!.credentials
     // verify credentials
-    const account = await Account.findFrom(await Account.findIdFrom(email))
+    const account = await Account.findBy(await Account.findIdFrom(email))
     const result = {
       login: {
         account: account.accountId,
@@ -188,13 +202,11 @@ oidc.initialize({
       consent: {}
     }
     await oidc.interactionFinished(ctx.req, ctx.res, result)
-    await next()
   })
 
-  router.get('/api/auth/interaction/:grant/confirm', async (ctx, next) => {
+  router.get('/api/auth/interaction/:grant/confirm', async ctx => {
     const result = { consent: {} }
     await oidc.interactionFinished(ctx.req, ctx.res, result)
-    await next()
   })
 
   if (!IS_PROD) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
@@ -205,7 +217,7 @@ oidc.initialize({
       client_secret: keys.OIDC_LANGUE_CLIENT_SECRET
     })
 
-    router.post('/api/auth/oidc', bodyparser(), async (ctx, next) => {
+    router.post('/api/auth/oidc', bodyparser(), async ctx => {
       const credentials = Credentials.check(ctx.request.body)
       const sessionKey = 'langue.link'
       const params = {
@@ -220,11 +232,10 @@ oidc.initialize({
       ctx.status = 303
     })
 
-    router.get('/api/auth/callback', bodyparser(), async (ctx, next) => {
+    router.get('/api/auth/callback', bodyparser(), async ctx => {
       const reqParams = client.callbackParams(ctx.req)
       const sessionKey = 'langue.link'
-      const session = ctx.session![sessionKey]
-      const { state, nonce } = session
+      const { state, nonce } = ctx.session![sessionKey]
       delete ctx.session![sessionKey]
       const checks = { state, nonce }
       const result: any = {}

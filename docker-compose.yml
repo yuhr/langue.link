@@ -43,8 +43,6 @@ services:
       - 'MONGODB_PASS=pass'
     networks:
       - network
-    ports:
-      - '27017'
     command: mongod --smallfiles
     volumes:
       - ./docker/mongo/db:/data/db

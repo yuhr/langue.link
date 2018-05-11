@@ -36,25 +36,25 @@ const db: { [key: string]: Gun } = {
 db.accounts = db.gun.get('accounts')
 db.emails = db.gun.get('emails')
 
-const AccountId = Type.String.withConstraint(
+export const AccountId = Type.String.withConstraint(
   x => /^[A-Za-z0-9_~]{21}$/.test(x)
     || `Invalid id format: '${x}'`)
-type AccountId = Type.Static<typeof AccountId>
+export type AccountId = Type.Static<typeof AccountId>
 
-const PasswordRaw = Type.String.withConstraint(
+export const PasswordRaw = Type.String.withConstraint(
   x => /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(x)
     || `Invalid password format: ${x}`)
-type PasswordRaw = Type.Static<typeof PasswordRaw>
+export type PasswordRaw = Type.Static<typeof PasswordRaw>
 
-const PasswordHash = Type.String.withConstraint(
+export const PasswordHash = Type.String.withConstraint(
   x => /^\$2[aby]?\$[\d]+\$[./A-Za-z0-9]{53}$/.test(x)
     || `Invalid passwordHash format: '${x}'`)
-type PasswordHash = Type.Static<typeof PasswordHash>
+export type PasswordHash = Type.Static<typeof PasswordHash>
 
-const Email = Type.String.withConstraint(
+export const Email = Type.String.withConstraint(
   x => isemail.validate(x)
     || `Invalid email format: '${x}'`)
-type Email = Type.Static<typeof Email>
+export type Email = Type.Static<typeof Email>
 
 const UserInfoRequired = {
   accountId: AccountId,
@@ -69,10 +69,8 @@ const UserInfoOptional = {
 }
 const UserInfo = Type.Record(UserInfoRequired).And(Type.Partial(UserInfoOptional))
 const UserInfoPartial = Type.Partial(UserInfoRequired).And(Type.Partial(UserInfoOptional))
-type UserInfo = Type.Static<typeof UserInfo>
-type UserInfoPartial = Type.Static<typeof UserInfoPartial>
-export type Document = UserInfo
-export type DocumentPartial = UserInfo
+export type UserInfo = Type.Static<typeof UserInfo>
+export type UserInfoPartial = Type.Static<typeof UserInfoPartial>
 
 export const Credentials = Type.Record({
   type: Type.Literal('credentials'),
@@ -121,18 +119,19 @@ export class Account {
     Email.check(email)
     const node = db.emails.get(email)
     const document = await new Promise<Document | undefined>(resolve => {
-      node.once(resolve)
+      node.load(resolve)
     })
     if (document === undefined) {
-      process.stdout.write(`AccountId not found. Creating for: ${email}`)
       const accountId = Account.generateId()
+      process.stdout.write(`AccountId not found. Creating: ${email}: ${accountId}`)
       await new Promise(resolve => {
         node.put(accountId, resolve)
       })
       return accountId
     } else {
-      process.stdout.write(`AccountId found: ${email}`)
-      return AccountId.check(document)
+      const accountId = AccountId.check(document)
+      process.stdout.write(`AccountId found: ${email}: ${accountId}`)
+      return accountId
     }
   }
   async register(credentials: Credentials) {
@@ -152,15 +151,16 @@ export class Account {
   static async searchBy(accountInfo: AccountId | Email) {
     const accountId = await Type.match(
       [Email, async email => await Account.findIdFrom(email)],
-      [AccountId, async accountId => accountId]
+      [AccountId, async accountId => accountId],
+      [Type.Always, x => { throw new ValidationError('Expected AccountId or Email.') }]
     )(accountInfo)
     const document = await new Promise<Document | undefined>(resolve => {
-      db.accounts.get(accountId).once(resolve)
+      db.accounts.get(accountId).load(resolve)
     })
     return document === undefined ?
-      document : await Account.findFrom(UserInfo.check(document))
+      document : await Account.findBy(UserInfo.check(document))
   }
-  static async findFrom(accountInfo: AccountId | UserInfo): Promise<Account> {
+  static async findBy(accountInfo: AccountId | UserInfo): Promise<Account> {
     return await Type.match(
       [UserInfo, async userInfo => {
         const account = new Account(userInfo)
@@ -170,31 +170,34 @@ export class Account {
       [AccountId, async accountId => {
         const node = db.accounts.get(accountId)
         const document = await new Promise<Document | undefined>(resolve => {
-          node.once(resolve)
+          node.load(resolve)
         })
         if (document === undefined) {
-          process.stdout.write('User not found. Creating.')
+          process.stdout.write(`Account not found. Creating: ${accountId}`)
           const account = new Account(accountId)
           await account.update()
           return account
         } else {
-          process.stdout.write(`User found: ${AccountId}`)
-          return await Account.findFrom(UserInfo.check(document))
+          process.stdout.write(`Account found: ${accountId}`)
+          return await Account.findBy(UserInfo.check(document))
         }
-      }]
+      }],
+      [Type.Always, x => { throw new ValidationError('Expected AccountId or UserInfo.') }]
     )(accountInfo)
   }
   // CALLBACK BY OIDC PROVIDER
-  static async findById(ctx: Context, accountId: AccountId, token?: { [key: string]: any}) {
+  static async findById(ctx: Context, accountId: AccountId, token?: { [key: string]: any }) {
     console.dir(token)
-    const userInfo = await Account.searchBy(accountId)
-    if (userInfo === undefined) return false
-    else return {
+    const account = await Account.searchBy(accountId)
+    console.dir(account)
+    if (account === undefined) {
+      return false
+    } else return {
       accountId,
       claims: (use: 'id_token' | 'userinfo', scope: string) => {
         return {
           sub: accountId,
-          ... userInfo
+          ... account.userInfo
         }
       }
     }
