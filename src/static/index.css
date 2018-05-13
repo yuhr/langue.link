@@ -1,5 +1,5 @@
 @import '../../node_modules/normalize.css/normalize.css';
-@import './schema.css';
+@import './colors.css';
 @import './fonts.css';
 
 // remove unwanted outlines on focus
@@ -9,7 +9,7 @@ input:focus { outline: none; }
 
 html {
   height: 100%;
-  font: 400 3.75mm/1.75rem 'Varela Round';
+  font: 400 3.75mm/1.5rem 'Varela Round', Emoji, sans-serif;
   font-feature-settings: 'palt','hkna','ccmp','liga','kern','clig','calt';
   font-kerning: normal;
   font-variant: common-ligatures contextual;
@@ -50,14 +50,24 @@ input {
   letter-spacing: 0.05em;
   transition: border 0.25s;
   &::placeholder {
-    color: var(--color-text-placeholder);
+    color: color(var(--color-text) a(-60%));
     transition: color 0.25s;
   }
   &:hover::placeholder {
-    color: color(var(--color-text-placeholder) blackness(+25%));
+    color: color(var(--color-text) a(-30%));
   }
   &:focus {
     border: solid 0.6mm var(--color-border-accent);
+  }
+  &.validative:invalid {
+    border-color: var(--palette-attention);
+    color: var(--color-text-attention);
+    &::placeholder {
+      color: color(var(--color-text-attention) a(-60%));
+    }
+    &:hover::placeholder {
+      color: color(var(--color-text-attention) a(-30%));
+    }
   }
 }
 
@@ -75,7 +85,10 @@ button {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   transition: background-color 0.25s;
-  &:hover {
+  &[disabled] {
+    background-color: var(--color-background-button-disabled);
+  }
+  &:not([disabled]):hover {
     background-color: color(var(--color-background-button-accent) lightness(+10%));
   }
 }

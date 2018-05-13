@@ -6,5 +6,6 @@
 !.secret
 
 node_modules
-yarn-error.log
 dst
+yarn-error.log
+.DS_Store

@@ -2,7 +2,7 @@
   <br><br>
   <img src="https://cdn.rawgit.com/yuhr/langue/master/res/logo-langue.svg"
        width="400px">
-  <p>The official webapp for the <a href="https://github.com/yuhr/langue">Langue</a> project.</p>
+  <p>The official webapp for the Langue project.</p>
   <h1><a href="https://langue.link">langue.link</a></h1>
   <a href="https://gitter.im/langue-project/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge">
     <img src="https://badges.gitter.im/langue-project/Lobby.svg">
@@ -13,7 +13,14 @@
   <br><br><br><br>
 </div>
 
-**Currently under heavy development** and not yet launching. We need your opinion about the project.
+Essentially, langue.link is meant to be a repository for linguistic informations. It works just like npm or some.
+
+langue.link is composed of:
+
+- Namespace registry
+- Public endpoint for distributed graph database
+
+**Currently under heavy development** and not yet launching. We need your opinion about [the project](https://github.com/yuhr/langue).
 
 ## Contribute
 

@@ -21,6 +21,9 @@ riot.parsers.css.cssnext = (tagname, css, opts, url) => {
 
 module.exports = [{
   name: 'server',
+  watchOptions: {
+    poll: true
+  },
   devtool: 'eval-source-map',
   target: 'node',
   externals: [require('webpack-node-externals')()],
@@ -33,7 +36,7 @@ module.exports = [{
     path: __dirname + '/dst',
     filename: './[name].js'
   },
-  resolve: { extensions: ['.ts'] },
+  resolve: { extensions: ['.js', '.mjs', '.ts'] },
   module: {
     rules: [
       {
@@ -53,6 +56,9 @@ module.exports = [{
 },
 {
   name: 'browser',
+  watchOptions: {
+    poll: true
+  },
   context: __dirname + '/src/static',
   entry: {
     'index': './index.ts',
@@ -62,7 +68,7 @@ module.exports = [{
     path: __dirname + '/dst/static',
     filename: './[name].js'
   },
-  resolve: { extensions: ['.js', '.ts', '.tag'] },
+  resolve: { extensions: ['.js', '.mjs', '.ts'] },
   module: {
     rules: [
       {
@@ -170,7 +176,7 @@ module.exports = [{
         ]
         */
       },
-      { test: /\.(?:woff2|txt|xml)$/, use: { loader: 'file-loader', options: { name: '[path][name].[ext]' } } },
+      { test: /\.(?:woff2|ttf|txt|xml)$/, use: { loader: 'file-loader', options: { name: '[path][name].[ext]' } } },
     ]
   }
 }]

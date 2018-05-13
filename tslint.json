@@ -50,6 +50,7 @@
     "semicolon": { "options": ["never"] },
     "no-unexpected-multiline": true,
     "no-constant-condition": { "severity": "warning" },
+    "ban-types": { "severity": "warning" },
     "no-sparse-arrays": true,
     "no-extra-boolean-cast": false,
     "restrict-plus-operands": true,
@@ -81,7 +82,9 @@
       }
     ],
     "number-literal-format": true,
-    "object-literal-key-quotes": false
+    "object-literal-key-quotes": false,
+    "unified-signatures": false,
+    "interface-name": false
     /*
     "no-spaced-func": true,
     "space-unary-ops": {

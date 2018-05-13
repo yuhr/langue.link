@@ -32,3 +32,10 @@
     local('Charis SIL Bold Italic'),
     url('fonts/CharisSIL-BI.woff2');
 }
+
+@font-face {
+  font-family: Emoji;
+  src:
+    local('Noto Emoji'),
+    url('fonts/NotoEmoji-Regular.ttf');
+}

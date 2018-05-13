@@ -36,6 +36,8 @@ services:
     container_name: mongo
     restart: on-failure
     image: mongo:latest
+    logging:
+      driver: none
     environment:
       - 'MONGODB_USER=user'
       - 'MONGODB_PASS=pass'
@@ -49,10 +51,8 @@ services:
     container_name: mongo-express
     restart: on-failure
     image: mongo-express
-    environment:
-      - 'ME_CONFIG_OPTIONS_EDITORTHEME=ambiance'
-      - 'ME_CONFIG_BASICAUTH_USERNAME=user'
-      - 'ME_CONFIG_BASICAUTH_PASSWORD=pass'
+    logging:
+      driver: none
     networks:
       - network
     depends_on:
@@ -64,6 +64,8 @@ services:
     container_name: browser-sync
     restart: on-failure
     image: ustwo/browser-sync
+    logging:
+      driver: none
     networks:
       - network
     depends_on:
@@ -79,9 +81,16 @@ services:
 #  'webpack': # generates `./node_modules`, watches and builds files
 #    container_name: webpack
 #    restart: on-failure
-#    build: ./docker/webpack
+#    image: node:alpine
 #    volumes:
 #      - ./dst:/var/webpack/dst
+#      - ./src:/var/webpack/src:ro
+#      - ./node_modules:/var/webpack/node_modules
+#      - ./docker/webpack/webpack.config.js:/var/webpack/webpack.config.js:ro
+#      - ./package.json:/var/webpack/package.json:ro
+#      - ./yarn.lock:/var/webpack/yarn.lock:ro
+#    working_dir: /var/webpack
+#    command: yarn install && yarn .wwebpack
 
   'app':
     container_name: app

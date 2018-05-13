@@ -1,6 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 import { URLSearchParams } from 'url'
+import crypto from 'crypto'
+import base64url from 'base64url'
 
 import * as Type from 'runtypes'
 import nanoid from 'nanoid'
@@ -13,13 +15,18 @@ import send from 'koa-send'
 import session from 'koa-session'
 import helmet from 'koa-helmet'
 import mount from 'koa-mount'
-import rewrite from 'koa-rewrite'
 
-import Provider from 'oidc-provider'
+import jwt from 'jsonwebtoken'
+
+import authProvider from './auth/provider'
+//import authClient from './auth/client'
+
 import { Issuer } from 'openid-client'
-import httpsProxyAgent from 'https-proxy-agent'
-
 import { Account, Credentials } from './db/account'
+import mail from './mail'
+
+import { ValidationError } from 'runtypes/lib/runtype'
+import { nonExecutableDefinitionMessage } from 'graphql/validation/rules/ExecutableDefinitions'
 
 const IS_PROD = 'production' === process.env.NODE_ENV
 const keys = JSON.parse(fs.readFileSync('./.secret/.keys.json', 'utf8'))
@@ -50,11 +57,20 @@ app.use(helmet.contentSecurityPolicy({
   }
 }))
 
+// api request logging
+router.get('*', async (ctx, next) => {
+  if (ctx.path.startsWith('/api')) console.log(`${ctx.method} ${ctx.path}`)
+  await next()
+})
+router.post('*', async (ctx, next) => {
+  if (ctx.path.startsWith('/api')) console.log(`${ctx.method} ${ctx.path}`)
+  await next()
+})
+
 app.use(async (ctx, next) => {
   const resolve = (path: string) => `./dst/static${path}`
   const hasExtention = 1 < path.extname(ctx.path).length
   if (ctx.path.startsWith('/api')) try {
-    console.log(`${ctx.method} ${ctx.path}`)
     await next()
   } catch (err) {
     console.log(err.message)
@@ -74,75 +90,7 @@ app.use(async (ctx, next) => {
   } else await send(ctx, resolve('/index.html'))
 })
 
-const oidc = new Provider('https://langue.link', {
-  features: {
-    devInteractions: false,
-    encryption: true,
-    introspection: true,
-    registration: true,
-    request: true,
-    revocation: true
-  },
-  routes: {
-    authorization: '/auth',
-    certificates: '/certs',
-    check_session: '/session/check',
-    end_session: '/session/end',
-    introspection: '/token/introspection',
-    registration: '/reg',
-    revocation: '/token/revocation',
-    token: '/token',
-    userinfo: '/me'
-  },
-  claims: {
-    address: ['address'],
-    email: ['email', 'email_verified'],
-    phone: ['phone_number', 'phone_number_verified'],
-    profile: ['birthdate', 'gender', 'locale', 'name', 'nickname', 'picture', 'preferred_username', 'profile', 'updated_at', 'website', 'zoneinfo', 'username']
-  },
-  scopes: ['openid'],
-  cookies: {
-    keys: ['a', 'b', 'c'],
-    names: {
-      session: '_session',
-      interaction: '_grant',
-      resume: '_grant',
-      state: '_state'
-    },
-    short: {
-      signed: true
-    }
-  },
-  discovery: {
-    service_documentation: 'https://langue.link/docs/',
-    // TODO: need more considerations
-    claims_locales_supported: undefined,
-    ui_locales_supported: undefined
-  },
-  interactionUrl: async (ctx: any, interaction: any) => {
-    return `/api/auth/interaction/${ctx.oidc.uuid}`
-  },
-  interactionCheck: async (ctx: any) => {
-    if (!ctx.oidc.session.sidFor(ctx.oidc.client.clientId)) {
-      return {
-        error: 'consent_required',
-        error_description: 'client not authorized for End-User session yet',
-        reason: 'client_not_authorized'
-      }
-    } else if (
-      ctx.oidc.client.applicationType === 'native' &&
-      ctx.oidc.params.response_type !== 'none' &&
-      !ctx.oidc.result) { // TODO: in 3.x require consent to be passed in results
-      return {
-        error: 'interaction_required',
-        error_description: 'native clients require End-User interaction',
-        reason: 'native_client_prompt'
-      }
-    }
-    return false
-  },
-  findById: Account.findById
-})
+const oidc = authProvider
 oidc.initialize({
   clients: [{
     client_id: keys.OIDC_LANGUE_CLIENT_ID,
@@ -151,21 +99,21 @@ oidc.initialize({
   }]
 }).then((provider: any) => {
   const prefix = '/api/oidc'
-  app.use(rewrite('/.well-known/(.*)', `${prefix}/.well-known/$1`))
   app.use(mount(prefix, oidc.app))
 
-  router.get('/api/auth/interaction/:grant', async ctx => {
+  router.get('/api/auth/interaction/:grant', async (ctx, next) => {
+    // shows a login/confirm form
     const details = await oidc.interactionDetails(ctx.req)
     //const client = await oidc.Client.find(details.params.client_id)
     // TODO: response a login form html
-    console.log(details.interaction.error)
     if (details.interaction.error === 'login_required') {
       // mimic login form fill
       const endpoint = `https://langue.link/api/auth/interaction/${details.uuid}/login`
       const { email, password } = ctx.session!.credentials
+      delete ctx.session!.credentials
       const data: { [key: string]: string } = {
         uuid: details.uuid,
-        login: email,
+        email,
         password,
         remember: 'no'
       }
@@ -183,14 +131,16 @@ oidc.initialize({
       const url = `${endpoint}?${params}`
       ctx.redirect(url)
     }
+    // `params` can be retrieved by `ctx.query` later
   })
 
   router.get('/api/auth/interaction/:grant/login', async ctx => {
-    //console.log(ctx.query)
-    const { email, password } = ctx.session!.credentials
-    delete ctx.session!.credentials
-    // verify credentials
-    const account = await Account.findBy(await Account.findIdFrom(email))
+    // this is not shown as a visual login form, but is just an API endpoint
+    const { email, password } = ctx.query
+    console.log(ctx.query)
+    const credentials = { email, password } as Credentials
+    // verify account credentials
+    const account = await Account.findBy(credentials)
     const result = {
       login: {
         account: account.accountId,
@@ -201,6 +151,7 @@ oidc.initialize({
       },
       consent: {}
     }
+    // return authorization code to RP
     await oidc.interactionFinished(ctx.req, ctx.res, result)
   })
 
@@ -213,39 +164,64 @@ oidc.initialize({
   Issuer.discover('https://langue.link/api/oidc').then((issuer: any) => {
     process.stdout.write('Discovered issuer.')
     const client = new issuer.Client({
+      // Client Attributes / Client Metadata
       client_id: keys.OIDC_LANGUE_CLIENT_ID,
-      client_secret: keys.OIDC_LANGUE_CLIENT_SECRET
+      client_secret: keys.OIDC_LANGUE_CLIENT_SECRET,
+      grant_types: ['implicit', 'authorization_code', 'refresh_token'],
+      //default_max_age: 7 * 24 * 60 * 60,
+      response_types: ['code id_token token'],
+      id_token_signed_response_alg: 'RS256',
+      userinfo_signed_response_alg: 'RS256',
+      application_type: 'web',
+      subject_type: 'public',
+      token_endpoint_auth_method: 'client_secret_basic'
     })
 
-    router.post('/api/auth/oidc', bodyparser(), async ctx => {
-      const credentials = Credentials.check(ctx.request.body)
-      const sessionKey = 'langue.link'
-      const params = {
-        state: nanoid(),
-        nonce: nanoid(),
-        redirect_uri: 'https://langue.link/api/auth/callback',
-        scope: 'openid email profile'
+    router.post('/api/auth', bodyparser(), async ctx => {
+      try {
+        const credentials = Credentials.check(ctx.request.body)
+        /*mail.sendMail({ to: credentials.email }, (err: any, info: any) => {
+          if (err) throw err
+          console.dir(info)
+        })*/
+        const sessionKey = 'langue.link'
+        const params = { // Authorization Request
+          state: nanoid(),
+          nonce: nanoid(),
+          redirect_uri: 'https://langue.link/api/auth/callback',
+          scope: 'openid email profile'
+        }
+        ctx.session![sessionKey] = params
+        ctx.session!.credentials = credentials
+        // redirect to the authorization endpoint
+        ctx.redirect(client.authorizationUrl(params))
+        ctx.status = 303
+      } catch (err) {
+        ctx.body = {
+          message: err.message,
+          ... err
+        }
+        ctx.status = 400
       }
-      ctx.session![sessionKey] = params
-      ctx.session!.credentials = credentials
-      ctx.redirect(client.authorizationUrl(params))
-      ctx.status = 303
     })
 
     router.get('/api/auth/callback', bodyparser(), async ctx => {
       const reqParams = client.callbackParams(ctx.req)
       const sessionKey = 'langue.link'
+      console.log(ctx.session![sessionKey])
       const { state, nonce } = ctx.session![sessionKey]
       delete ctx.session![sessionKey]
       const checks = { state, nonce }
       const result: any = {}
+      // send authorization code and retrieve access token and id token
       result.tokenset = await client.authorizationCallback(
         'https://langue.link/api/auth/callback', reqParams, checks)
+      // request user resource
       if (result.tokenset.access_token) {
         result.userinfo = await client.userinfo(result.tokenset)
       }
       // verify here
-      ctx.body = result
+      ctx.body = { result: 'succeeded', value: result }
     })
   }).catch((error: any) => {
     console.log(error)

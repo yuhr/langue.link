@@ -1,7 +1,7 @@
 <ribbon>
   <yield />
   <style>
-    @import '../schema.css';
+    @import '../colors.css';
     ribbon {
       position: fixed;
       display: flex;
@@ -38,7 +38,7 @@
   <!--<img src="./imgs/langue.link.svg"></img>-->
   <span>Langue</span>
   <style>
-    @import '../schema.css';
+    @import '../colors.css';
     :scope {
       display: flex;
       justify-content: center;

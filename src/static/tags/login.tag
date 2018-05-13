@@ -7,12 +7,17 @@
   </button>
   -->
   <form onsubmit={ submit }>
-    <input type="email" name="email" placeholder="Email" required autofocus="on">
-    <input type="password" name="password" placeholder="Password" required pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).\{8,\}$">
-    <button>Sign in</button>
+    <input type="email" name="email" placeholder="Email address" required>
+    <input type="password" name="password" placeholder="Password" required pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).\{8,\}$" class="tippy" title="Include at least one lowercase, one uppercase and one digit.">
+    <span></span>
+    <button class="signin"><span>Sign in</span></button>
   </form>
+  <div>
+    <strong>💌 Email sent.</strong>
+    <span>Check your mailbox and validate the account.</span>
+  </div>
   <style>
-    @import '../schema.css';
+    @import '../colors.css';
     :scope {
       display: block;
       margin: 4mm 10%;
@@ -35,18 +40,49 @@
     button.icon {
       padding: 0 0.5em;
     }
+    div {
+      display: none;
+      * {
+        display: block;
+      }
+      strong {
+        font-size: 2rem;
+        font-weight: normal;
+      }
+    }
   </style>
   <script>
+    import * as tippy from 'tippy.js/dist/tippy.all.js'
     this.on('mount', () => {
+      tippy(this.root.querySelectorAll('input.tippy'), {
+        arrow: true,
+        arrowType: 'round',
+        animation: 'shift-away',
+        innertia: true,
+        placement: 'left',
+        trigger: 'focus',
+        hideOnClick: false
+      })
       this.root.querySelectorAll('button[action]').forEach(button => {
         button.addEventListener('click', e => {
           console.log(button.getAttribute('action'))
         })
       })
+      this.root.querySelectorAll('input').forEach(input => {
+        input.addEventListener('blur', e => {
+          input.classList.add('validative')
+          setTimeout(() => {
+            if (input.value.length === 0) input.classList.remove('validative')
+          }, 1000)
+        })
+      })
     })
     this.submit = async e => {
+      const button = this.root.querySelectorAll('button.signin')[0]
+      button.disabled = true
+      setTimeout(() => { button.disabled = false }, 1000)
       e.preventDefault()
-      const res = await fetch('/api/auth/oidc', {
+      const res = await fetch('/api/auth', {
         method: 'post',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },

@@ -8,8 +8,10 @@
   --palette-back: #f9f9f9;
   --palette-fore-sub: #cccbca;
   --palette-back-sub: #ffffff;
+  --palette-attention: #cc2727;
 
   --color-text: var(--palette-fore);
+  --color-text-attention: var(--palette-attention);
   --color-text-invert: var(--palette-fore-bright);
   --color-text-link: var(--palette-accent-dark);
   --color-text-placeholder: var(--palette-fore-sub);
@@ -18,6 +20,7 @@
   --color-background-input: var(--palette-back-sub);
   --color-background-button: var(--palette-fore);
   --color-background-button-accent: var(--palette-accent-dark);
+  --color-background-button-disabled: var(--palette-fore-sub);
   --color-border-accent: var(--palette-accent-dark);
   --color-border-input: var(--palette-fore-sub);
 }
