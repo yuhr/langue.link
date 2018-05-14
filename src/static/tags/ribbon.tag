@@ -13,7 +13,7 @@
       height: 3rem;
       padding: 0 5mm;
       box-sizing: border-box;
-      background-color: var(--color-background);
+      background-color: var(--color-background-active);
       > * {
         display: inline-block;
         flex: 0 0 auto;
@@ -29,6 +29,7 @@
         right: 0;
         left: 0;
         background: linear-gradient(to right bottom, var(--palette-accent-from), var(--palette-accent-to));
+        box-shadow: 0 0 1mm color(var(--palette-accent-from) s(+200%) a(-50%));
       }
     }
   </style>
@@ -36,7 +37,7 @@
 
 <logo>
   <!--<img src="./imgs/langue.link.svg"></img>-->
-  <span>Langue</span>
+  <span><yield /></span>
   <style>
     @import '../colors.css';
     :scope {
@@ -45,7 +46,8 @@
       align-content: center;
       align-items: center;
       color: rgba(#666460, 0.9);
-      & > span {
+      height: 100%;
+      span {
         letter-spacing: 0.1em;
         font: 400 1rem/1em 'Varela Round', sans-serif;
         text-transform: uppercase;
@@ -53,10 +55,6 @@
         &::first-letter {
           letter-spacing: 0.125em;
         }
-        text-shadow:
-          -1px -1px color(var(--palette-fore) l(+25%) s(+100%) h(+140%) a(-50%)),
-          -1px 1px color(var(--palette-fore) l(+25%) s(+100%) h(+20%) a(-50%)),
-          1px 0 color(var(--palette-fore) l(+25%) s(+100%) h(-90%) a(-50%));
       }
     }
   </style>

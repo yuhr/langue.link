@@ -1,6 +1,6 @@
 {
   "defaultSeverity": "error",
-  "extends": ["tslint-eslint-rules", "tslint:recommended"],
+  "extends": ["tslint:recommended", "tslint-eslint-rules"],
   "rules": {
     "quotemark": {
       "options": ["single", "avoid-escape", "avoid-template"]
@@ -15,11 +15,14 @@
     "comment-format": false,
     "member-access": { "options": ["no-public"] },
     "ordered-imports": false,
-    "trailing-comma": { "options": [{
-      "multiline": "never",
-      "singleline": "never",
-      "esSpecCompliant": true
-    }] },
+    "trailing-comma": {
+      "options": [
+        {
+          "multiline": "never",
+          "singleline": "never"
+        }
+      ]
+    },
     "member-ordering": false,
     "max-line-length": false,
     "no-namespace": false,
@@ -31,11 +34,7 @@
     "no-console": { "severity": "warning" },
     "object-literal-sort-keys": false,
     "no-unused-expression": {
-      "options": [
-        "allow-fast-null-checks",
-        "allow-new",
-        "allow-tagged-template"
-      ],
+      "options": ["allow-fast-null-checks", "allow-new", "allow-tagged-template"],
       "severity": "warning"
     },
     "no-unused-variable": {
@@ -64,7 +63,13 @@
     "switch-default": true,
     "prefer-switch": false,
     "one-line": {
-      "options": ["check-catch", "check-else", "check-finally", "check-open-brace", "check-whitespace"]
+      "options": [
+        "check-catch",
+        "check-else",
+        "check-finally",
+        "check-open-brace",
+        "check-whitespace"
+      ]
     },
     "ter-no-irregular-whitespace": {
       "options": {

@@ -9,6 +9,7 @@ module.exports = {
   //logConnections: true,
   //logFileChanges: true,
   //logSnippet: true,
+  //middleware: [require('connect-history-api-fallback')],
   open: false,
   cors: true,
   reloadOnRestart: true,

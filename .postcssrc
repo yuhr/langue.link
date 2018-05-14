@@ -1,0 +1,14 @@
+{
+  "plugins": {
+    "postcss-import-sync": {
+      "root": "./src/static/tags",
+      "addDependencyTo": "webpack"
+    },
+    "postcss-nested": {},
+    "postcss-hexrgba": {},
+    "postcss-cssnext": {
+      "browsers": ["last 2 versions"],
+      "features": { "rem": { "html": false } }
+    }
+  }
+}

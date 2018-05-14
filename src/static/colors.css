@@ -17,10 +17,12 @@
   --color-text-placeholder: var(--palette-fore-sub);
   --color-text-note: var(--palette-fore-light);
   --color-background: var(--palette-back);
+  --color-background-active: var(--palette-back-sub);
   --color-background-input: var(--palette-back-sub);
   --color-background-button: var(--palette-fore);
   --color-background-button-accent: var(--palette-accent-dark);
   --color-background-button-disabled: var(--palette-fore-sub);
   --color-border-accent: var(--palette-accent-dark);
+  --color-border-view: var(--palette-fore-sub);
   --color-border-input: var(--palette-fore-sub);
 }

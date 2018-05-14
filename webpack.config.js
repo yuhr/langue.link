@@ -1,182 +1,197 @@
 const IS_PROD = 'production' === process.env.NODE_ENV
 
-const postcss_plugins = [
-  require('postcss-import-sync')({ root: './src/static/tags', addDependencyTo: 'webpack' }),
-  require('postcss-nested')(),
-  require('postcss-hexrgba')(),
-  require('postcss-cssnext')({
-    browsers: ['last 2 versions'],
-    features: { rem: { html: false } }
-  })
-]
+const riotOptions = require('./riot.config')
 
 const riot = require('riot')
-riot.parsers.js.ts = (ts) => require('typescript').transpile(ts)
-riot.parsers.css.cssnext = (tagname, css, opts, url) => {
-  css = css.replace(/:scope/g, ':root')
-  css = require('postcss')(postcss_plugins).process(css).css
-  css = css.replace(/:root/g, ':scope')
-  return css
-}
+riot.parsers.js = riotOptions.parsers.js
+riot.parsers.css = riotOptions.parsers.css
 
-module.exports = [{
-  name: 'server',
-  watchOptions: {
-    poll: true
+module.exports = [
+  {
+    name: 'server',
+    watchOptions: {
+      poll: true
+    },
+    devtool: 'eval-source-map',
+    target: 'node',
+    externals: [require('webpack-node-externals')()],
+    context: __dirname + '/src',
+    entry: {
+      app: './app.ts'
+    },
+    output: {
+      libraryTarget: 'commonjs',
+      path: __dirname + '/dst',
+      filename: './[name].js'
+    },
+    resolve: { extensions: ['.js', '.mjs', '.ts'] },
+    module: {
+      rules: [
+        {
+          test: /\.ts$/,
+          exclude: /node_modules/,
+          use: [
+            {
+              loader: 'babel-loader',
+              options: {
+                presets: [
+                  ['@babel/preset-env', { targets: { node: 'current' } }]
+                ],
+                plugins: ['@babel/plugin-transform-runtime']
+              }
+            },
+            'ts-loader'
+          ]
+        },
+        { test: /\.gql$/, use: 'gql-loader' }
+      ]
+    }
   },
-  devtool: 'eval-source-map',
-  target: 'node',
-  externals: [require('webpack-node-externals')()],
-  context: __dirname + '/src',
-  entry: {
-    'app': './app.ts',
-  },
-  output: {
-    libraryTarget: 'commonjs',
-    path: __dirname + '/dst',
-    filename: './[name].js'
-  },
-  resolve: { extensions: ['.js', '.mjs', '.ts'] },
-  module: {
-    rules: [
-      {
-        test: /\.ts$/,
-        exclude: /node_modules/,
-        use: [
-          {
+  {
+    name: 'browser',
+    watchOptions: {
+      poll: true
+    },
+    context: __dirname + '/src/static',
+    entry: {
+      index: './index.ts',
+      'docs/index': './docs/index.ts'
+    },
+    output: {
+      path: __dirname + '/dst/static',
+      filename: './[name].js'
+    },
+    resolve: { extensions: ['.js', '.mjs', '.ts'] },
+    module: {
+      rules: [
+        {
+          test: /\.tag$/,
+          enforce: 'pre',
+          exclude: /node_modules/,
+          use: [
+            {
+              loader: 'riot-tag-loader',
+              options: {
+                hot: true,
+                type: 'ts',
+                style: 'cssnext'
+              }
+            }
+          ]
+        },
+        {
+          test: /\.ts$/,
+          enforce: 'pre',
+          exclude: /node_modules/,
+          use: ['ts-loader', 'import-glob']
+        },
+        {
+          test: /\.(?:js|ts|tag)$/,
+          enforce: 'post',
+          exclude: /node_modules/,
+          use: {
             loader: 'babel-loader',
-            options: { presets: [['@babel/preset-env', { targets: { node: 'current' } }]] }
-          },
-          'ts-loader'
-        ]
-      },
-      { test: /\.gql$/, use: 'gql-loader' }
-    ]
-  }
-},
-{
-  name: 'browser',
-  watchOptions: {
-    poll: true
-  },
-  context: __dirname + '/src/static',
-  entry: {
-    'index': './index.ts',
-    'docs/index': './docs/index.ts',
-  },
-  output: {
-    path: __dirname + '/dst/static',
-    filename: './[name].js'
-  },
-  resolve: { extensions: ['.js', '.mjs', '.ts'] },
-  module: {
-    rules: [
-      {
-        test: /\.tag$/,
-        enforce: 'pre',
-        exclude: /node_modules/,
-        use: [
-          {
-            loader: 'riot-tag-loader',
             options: {
-              type: 'ts',
-              style: 'cssnext'
+              presets: [
+                [
+                  '@babel/preset-env',
+                  { targets: { browsers: ['last 2 versions'] } }
+                ]
+              ],
+              plugins: ['@babel/plugin-transform-runtime']
             }
-          },
-        ]
-      },
-      { test: /\.ts$/, enforce: 'pre', exclude: /node_modules/, use: ['ts-loader','import-glob'] },
-      {
-        test: /\.(?:js|ts|tag)$/,
-        enforce: 'post',
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: { presets: [['@babel/preset-env', { targets: { browsers: ['last 2 versions'] } }]] }
+          }
+        },
+        {
+          test: /\.css$/,
+          use: [
+            { loader: 'file-loader', options: { name: '[path][name].[ext]' } },
+            'extract-loader',
+            {
+              loader: 'css-loader',
+              options: { importLoaders: 1, minimize: IS_PROD }
+            },
+            'postcss-loader'
+          ]
+        },
+        {
+          test: /\.html$/,
+          use: [
+            { loader: 'file-loader', options: { name: '[path][name].[ext]' } },
+            'extract-loader',
+            {
+              loader: 'html-loader',
+              options: {
+                minimize: IS_PROD,
+                caseSensitive: true,
+                collapseBooleanAttributes: true,
+                collapseInlineTagWhitespace: false,
+                collapseWhitespace: true,
+                conservativeCollapse: false,
+                decodeEntities: false,
+                html5: true,
+                includeAutoGeneratedTags: false,
+                keepClosingSlash: true,
+                minifyCSS: false,
+                minifyJS: false,
+                preserveLineBreaks: false,
+                preventAttributesEscaping: false,
+                removeAttributeQuotes: true,
+                removeComments: true,
+                removeEmptyAttributes: false,
+                removeEmptyElements: false,
+                removeOptionalTags: false,
+                removeRedundantAttributes: true,
+                removeScriptTypeAttributes: true,
+                removeStyleLinkTypeAttributes: true,
+                sortAttributes: true,
+                sortClassName: true,
+                useShortDoctype: true
+              }
+            },
+            {
+              loader: 'posthtml-loader',
+              options: {
+                plugins: [
+                  require('htmlnano')({
+                    removeComments: true,
+                    collapseWhitespace: 'conservative'
+                  })
+                ]
+              }
+            }
+          ]
+        },
+        {
+          test: /\.svg$/,
+          use: {
+            loader: 'file-loader',
+            options: { name: '[path][name].[ext]' }
+          }
+          /*
+          use: [
+            {
+              loader: 'svgo-loader',
+              options: {
+                plugins: [
+                  { cleanupAttrs: true },
+                  { removeTitle: true },
+                  { convertColors: { shorthex: true } },
+                  { convertPathData: false }
+                ]
+              }
+            }
+          ]
+          */
+        },
+        {
+          test: /\.(?:woff2|ttf|txt|xml)$/,
+          use: {
+            loader: 'file-loader',
+            options: { name: '[path][name].[ext]' }
+          }
         }
-      },
-      {
-        test: /\.css$/,
-        use: [
-          { loader: 'file-loader', options: { name: '[path][name].[ext]' } },
-          'extract-loader',
-          { loader: 'css-loader', options: { importLoaders: 1, minimize: IS_PROD } },
-          {
-            loader: 'postcss-loader',
-            options: {
-              plugins: postcss_plugins,
-            }
-          }
-        ]
-      },
-      {
-        test: /\.html$/,
-        use: [
-          { loader: 'file-loader', options: { name: '[path][name].[ext]' } },
-          'extract-loader',
-          {
-            loader: 'html-loader',
-            options: {
-              minimize: IS_PROD,
-              caseSensitive: true,
-              collapseBooleanAttributes: true,
-              collapseInlineTagWhitespace: false,
-              collapseWhitespace: true,
-              conservativeCollapse: false,
-              decodeEntities: false,
-              html5: true,
-              includeAutoGeneratedTags: false,
-              keepClosingSlash: true,
-              minifyCSS: false,
-              minifyJS: false,
-              preserveLineBreaks: false,
-              preventAttributesEscaping: false,
-              removeAttributeQuotes: true,
-              removeComments: true,
-              removeEmptyAttributes: false,
-              removeEmptyElements: false,
-              removeOptionalTags: false,
-              removeRedundantAttributes: true,
-              removeScriptTypeAttributes: true,
-              removeStyleLinkTypeAttributes: true,
-              sortAttributes: true,
-              sortClassName: true,
-              useShortDoctype: true
-            }
-          },
-          {
-            loader: 'posthtml-loader',
-            options: {
-              plugins: [
-                require('htmlnano')({
-                  removeComments: true,
-                  collapseWhitespace: 'conservative'
-                })
-              ]
-            }
-          }
-        ]
-      },
-      {
-        test: /\.svg$/,
-        use: { loader: 'file-loader', options: { name: '[path][name].[ext]' } }
-        /*
-        use: [
-          {
-            loader: 'svgo-loader',
-            options: {
-              plugins: [
-                { cleanupAttrs: true },
-                { removeTitle: true },
-                { convertColors: { shorthex: true } },
-                { convertPathData: false }
-              ]
-            }
-          }
-        ]
-        */
-      },
-      { test: /\.(?:woff2|ttf|txt|xml)$/, use: { loader: 'file-loader', options: { name: '[path][name].[ext]' } } },
-    ]
+      ]
+    }
   }
-}]
+]

@@ -1,8 +1,7 @@
 .*
-!.gitignore
-!.gitattributes
-!.dockerignore
-!.env-cmdrc
+!.*ignore
+!.*rc
+!.*attributes
 !.secret
 
 node_modules

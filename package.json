@@ -1,11 +1,13 @@
 {
   "private": true,
   "main": "./dst/app.js",
+  "browserslist": [
+    "last 2 versions"
+  ],
   "dependencies": {
     "base64url": "^2.0.0",
     "bcryptjs": "^2.4.3",
     "env-cmd": "^8.0.1",
-    "gql-loader": "^1.0.0",
     "graphql": "^0.13.2",
     "gun": "^0.9.994",
     "gun-mongo-key": "^0.1.4",
@@ -21,17 +23,19 @@
     "koa-session": "^5.8.1",
     "nanoid": "^1.0.2",
     "nodemailer": "^4.6.4",
-    "npm": "^6.0.1",
     "npm-run-all": "^4.1.3",
     "oidc-provider": "^3.0.0",
     "openid-client": "^2.0.1",
-    "runtypes": "file:../runtypes",
+    "riot-route": "^3.1.3",
+    "runtypes": "^2.0.6",
     "tippy.js": "^2.5.2",
     "try-expression": "^1.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.46",
+    "@babel/plugin-transform-runtime": "^7.0.0-beta.46",
     "@babel/preset-env": "^7.0.0-beta.46",
+    "@babel/runtime": "^7.0.0-beta.46",
     "@types/base64url": "^2.0.0",
     "@types/bcryptjs": "^2.4.1",
     "@types/cors": "^2.8.4",
@@ -48,16 +52,20 @@
     "@types/node": "^10.0.4",
     "@types/nodemailer": "^4.6.0",
     "@types/riot": "^3.6.1",
+    "@types/riot-route": "^3.1.0",
     "babel-loader": "^8.0.0-beta.2",
     "chokidar": "^2.0.3",
     "css-loader": "^0.28.4",
     "extract-loader": "^2.0.1",
     "file-loader": "^1.1.11",
+    "gql-loader": "^1.0.0",
     "html-loader": "^0.5.5",
+    "htmlhint": "^0.9.13",
     "htmlnano": "^0.1.9",
     "import-glob": "^1.5.0",
     "nodemon": "^1.17.4",
     "normalize.css": "^8.0.0",
+    "onchange": "^4.0.0",
     "postcss": "^6.0.6",
     "postcss-cssnext": "^3.0.2",
     "postcss-hexrgba": "^1.0.1",
@@ -68,6 +76,7 @@
     "posthtml-loader": "^1.0.1",
     "pre-build-webpack": "^0.1.0",
     "riot": "^3.9.5",
+    "riot-hot-reload": "^1.0.0",
     "riot-tag-loader": "^2.0.2",
     "svg-icon": "^0.8.1",
     "svgo": "^1.0.5",
@@ -90,6 +99,7 @@
     ".watch:chokidar": "nodemon --watch watch.config.mjs --exec 'node --experimental-modules watch.config.mjs'",
     ".watch:webpack": "nodemon --watch webpack.config.js --exec 'webpack --mode development --watch'",
     ".watch:docker": "nodemon --watch docker-compose.yml --exec 'docker-compose up'",
+    "watch:format": "nodemon --watch prettier.config.js --exec 'onchange \"./src/**/*\" -- prettier --write {{changed}}'",
     "watch": "nodemon --watch .env-cmdrc --exec 'env-cmd development run-p .watch:*'"
   }
 }

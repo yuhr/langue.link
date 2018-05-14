@@ -26,7 +26,20 @@ export default new Provider('https://langue.link', {
     address: ['address'],
     email: ['email', 'email_verified'],
     phone: ['phone_number', 'phone_number_verified'],
-    profile: ['birthdate', 'gender', 'locale', 'name', 'nickname', 'picture', 'preferred_username', 'profile', 'updated_at', 'website', 'zoneinfo', 'username']
+    profile: [
+      'birthdate',
+      'gender',
+      'locale',
+      'name',
+      'nickname',
+      'picture',
+      'preferred_username',
+      'profile',
+      'updated_at',
+      'website',
+      'zoneinfo',
+      'username'
+    ]
   },
   scopes: ['openid'],
   cookies: {
@@ -60,7 +73,9 @@ export default new Provider('https://langue.link', {
     } else if (
       ctx.oidc.client.applicationType === 'native' &&
       ctx.oidc.params.response_type !== 'none' &&
-      !ctx.oidc.result) { // TODO: in 3.x require consent to be passed in results
+      !ctx.oidc.result
+    ) {
+      // TODO: in 3.x require consent to be passed in results
       return {
         error: 'interaction_required',
         error_description: 'native clients require End-User interaction',

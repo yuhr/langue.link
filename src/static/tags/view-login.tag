@@ -1,4 +1,4 @@
-<login>
+<view-login data-is="view">
   <!--
   <button class="icon" action="/api/auth/github">
     <svg xmlns="http://www.w3.org/2000/svg">
@@ -18,14 +18,6 @@
   </div>
   <style>
     @import '../colors.css';
-    :scope {
-      display: block;
-      margin: 4mm 10%;
-      padding: 1mm;
-      box-sizing: border-box;
-      border: solid 0.3mm var(--color-border-input);
-      border-radius: 2mm;
-    }
     svg {
       vertical-align: middle;
       max-width: 100%;
@@ -93,7 +85,7 @@
           },  { type: 'credentials' }))
       })
       const json = await res.json()
-      console.log(json)
+      localStorage.setItem('tokenset', JSON.stringify(json.tokenset))
     }
   </script>
-</login>
+</view-login>
