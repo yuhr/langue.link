@@ -18,10 +18,12 @@ Essentially, langue.link is meant to be a repository for linguistic informations
 langue.link is composed of:
 
 - Namespace registry
-- Static document oriented database
-- Public endpoint for distributed realtime graph database
+- Static document oriented database for data permanence
+- Public endpoint for the Langue P2P network
+- Some social stuff (auths, follows, timelines, etc)
+- Web UI
 
-**Currently under heavy development** and not yet launching. We need your opinion about [the project](https://github.com/yuhr/langue).
+**Currently under heavy development** and not yet launching. This repository is likely to be squashed periodically. We need your opinion about [the project](https://github.com/yuhr/langue).
 
 ## Contribute
 
