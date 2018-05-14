@@ -12,7 +12,6 @@ import route from 'riot-route'
 import './tags/*.tag'
 riot.mount('view')
 riot.mount('ribbon')
-riot.mount('view-login')
 
 route(page => {
   riot.mount('content', `content-${page}`)

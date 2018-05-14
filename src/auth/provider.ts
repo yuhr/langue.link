@@ -1,6 +1,5 @@
 import Provider from 'oidc-provider'
 import { Account } from '../db/account'
-import Adapter from '../db/adapter'
 
 export default new Provider('https://langue.link', {
   features: {
@@ -84,6 +83,5 @@ export default new Provider('https://langue.link', {
     }
     return false
   },
-  findById: Account.findById,
-  adapter: Adapter
+  findById: Account.findById
 })

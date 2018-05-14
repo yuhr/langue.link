@@ -1,67 +1,95 @@
+import { Record, Partial, String, Static } from 'runtypes'
 import { DistributedDatabase } from './backend'
 import nanoid from 'nanoid'
+import { MongoClient, Db } from 'mongodb'
 
 const db = {
   grants: new DistributedDatabase('grants'),
   payloads: new DistributedDatabase('payloads')
 }
 
-type Payload = {
-  grantId: string,
-  header: string,
-  payload: string,
-  signature: string
-}
+const GrantId = String.withBrand('GrantId')
+type GrantId = Static<typeof GrantId>
+
+const GrantKey = String.withBrand('GrantKey')
+type GrantKey = Static<typeof GrantKey>
+
+const Payload = Record({
+  header: String,
+  payload: String,
+  signature: String
+}).And(Partial({
+  grantId: GrantId
+})).withBrand('Payload')
+type Payload = Static<typeof Payload>
 
 type Grant = {
   [key: string]: string
 }
 
-type Id = string
+const Id = String.withBrand('Id')
+type Id = Static<typeof Id>
 
-export default class Adapter {
+const Key = String.withBrand('Key')
+type Key = Static<typeof Key>
+
+let DB: Db
+
+export class Adapter {
   name: string
+  static names: string[] = []
   constructor(name: string) {
-    console.log('adapter')
     this.name = name
-  }
-  async upsert(id: Id, payload: Payload, expiresIn: number) {
-    console.log(`payload ${payload}`)
-    const key = this.key(id)
-    const { grantId } = payload
-    if (grantId !== undefined) {
-      const grantKey = Adapter.grantKeyFor(grantId)
-      await db.grants.set(grantKey, { [nanoid()]: key } )
+    const i = Adapter.names.findIndex(name => name === this.name)
+    if (i !== -1) {
+      DB.collection(name).createIndexes([
+        { key: { grantId: 1 } },
+        { key: { expiresAt: 1 }, expireAfterSeconds: 0 }
+      ])
+      Adapter.names.push(name)
     }
-    await db.payloads.set(key, payload) // expiresIn * 1000
   }
-  async find(id: Id) {
-    return await db.payloads.get(this.key(id)) as Payload
+  coll(name?: string) {
+    return Adapter.coll(name || this.name)
   }
-  async consume(id: Id) {
-    console.log('consume')
-    await db.payloads.get(this.key(id))
+  static coll(name: string) {
+    return DB.collection(name)
   }
   async destroy(id: Id) {
-    const key = this.key(id)
-    const payload = await db.payloads.get(key) as Payload
-    if (payload) {
-      const grantId = payload.grantId
-      // db.payloads.unload(key)
-      if (grantId) {
-        const grantKey = Adapter.grantKeyFor(grantId)
-        const grant = await db.grants.get(grantKey) as Grant
-        //Object.values(grant).forEach(token => db.payloads.unload(token))
-      }
+    const found = await this.coll().findOneAndDelete({ _id: id })
+    if (found.value && found.value.grantId) {
+      const promises: any[] = []
+      Adapter.names.forEach(name => {
+        promises.push(this.coll(name).deleteMany({ grantId: found.value.grantId }))
+      })
+      return await Promise.all(promises)
     }
+    return undefined
   }
   key(id: Id) {
-    return `${this.name}:${id}`
+    console.log('ok: key!')
+    return `${this.name}:${id}` as Key
   }
-  static grantKeyFor(id: Id) {
-    return `grant:${id}`
+  async consume(id: Id) {
+    return await this.coll().findOneAndUpdate({ _id: id }, { $currentDate: { consumed: true } })
+  }
+  async find(id: Id) {
+    return await this.coll().find({ _id: id }).limit(1).next()
+  }
+  async upsert(id: Id, payload: Payload, expiresIn: number) {
+    let expiresAt
+    if (expiresIn) {
+      expiresAt = new Date(Date.now() + (expiresIn * 1000))
+    }
+    if (this.name === 'client') {
+      expiresAt = new Date(Date.now() + (24 * 60 * 60 * 1000))
+    }
+    const document = { ...payload, ...(expiresAt && { expiresAt }) }
+    return await this.coll().updateOne({ _id: id }, { $set: document }, { upsert: true })
   }
   static async connect(provider: any) {
-    console.log('connect')
+    console.log('ok: connect')
+    const client = await MongoClient.connect('mongodb://mongo:27017')
+    DB = client.db('adapter:oidc')
   }
 }

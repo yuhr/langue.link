@@ -40,6 +40,9 @@ export class DistributedDatabase implements Database {
     const resolve = await new Promise<Ack>(resolve => {
       this.node.get(key).put(document, resolve)
     })
-    if (resolve.err) throw Error(resolve.err.toString())
+    if (resolve.err) {
+      console.log('db error')
+      throw Error(resolve.err.toString())
+    }
   }
 }

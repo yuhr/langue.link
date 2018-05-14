@@ -7,8 +7,9 @@
   </button>
   -->
   <form onsubmit={ submit }>
+    <input type="username" name="username" placeholder="Username" pattern="^[a-zA-Z0-9][a-zA-Z0-9_-]\{2,30\}[a-zA-Z0-9]$" required>
     <input type="email" name="email" placeholder="Email address" required>
-    <input type="password" name="password" placeholder="Password" required pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).\{8,\}$" class="tippy" title="Include at least one lowercase, one uppercase and one digit.">
+    <input type="password" name="password" placeholder="Password" required pattern="^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).\{8,\}$" class="tippy" title="Include at least one lowercase, one uppercase and one digit.">
     <span></span>
     <button class="signin"><span>Sign in</span></button>
   </form>
@@ -82,7 +83,7 @@
           this.root.querySelectorAll('input'), (prev, input) => {
             prev[input.name] = input.value
             return prev
-          },  { type: 'credentials' }))
+          },  {}))
       })
       const json = await res.json()
       localStorage.setItem('tokenset', JSON.stringify(json.tokenset))

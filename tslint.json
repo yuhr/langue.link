@@ -23,6 +23,7 @@
         }
       ]
     },
+    "max-classes-per-file": false,
     "member-ordering": false,
     "max-line-length": false,
     "no-namespace": false,

@@ -1,10 +1,16 @@
 <content-user data-is="content">
-  <view-login />
+  <view />
   <script>
     import { query } from '../query'
+    import * as riot from 'riot'
     this.on('mount', async () => {
-      const me = await query('/api/oidc/me')
-      console.log(me)
+      let userinfo
+      try {
+        userinfo = await query('/api/oidc/me')
+      } catch (err) {
+        riot.mount('view', 'view-login')
+      }
+      riot.mount('view', 'view-user', { userinfo })
     })
   </script>
 </content-user>

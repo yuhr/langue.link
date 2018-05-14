@@ -578,6 +578,12 @@
     "@types/connect" "*"
     "@types/node" "*"
 
+"@types/bson@*":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@types/bson/-/bson-1.0.8.tgz#6ad272b3f049e9598ec33aed09cf56d8946b75f1"
+  dependencies:
+    "@types/node" "*"
+
 "@types/connect@*":
   version "3.4.32"
   resolved "https://registry.yarnpkg.com/@types/connect/-/connect-3.4.32.tgz#aa0e9616b9435ccad02bc52b5b454ffc2c70ba28"
@@ -704,6 +710,14 @@
 "@types/mime@*":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-2.0.0.tgz#5a7306e367c539b9f6543499de8dd519fac37a8b"
+
+"@types/mongodb@^3.0.18":
+  version "3.0.18"
+  resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-3.0.18.tgz#e5775ba9c15bf1601e57ada52d9fcbc6d6095d18"
+  dependencies:
+    "@types/bson" "*"
+    "@types/events" "*"
+    "@types/node" "*"
 
 "@types/node@*", "@types/node@^10.0.4":
   version "10.0.8"
@@ -5736,6 +5750,15 @@ mongodb-core@2.1.19:
     bson "~1.0.4"
     require_optional "~1.0.0"
 
+mongodb-core@3.1.0-beta4:
+  version "3.1.0-beta4"
+  resolved "https://registry.yarnpkg.com/mongodb-core/-/mongodb-core-3.1.0-beta4.tgz#44813da6ee0a61d26f0d523207cfba8ca32e59fc"
+  dependencies:
+    bson "~1.0.4"
+    require_optional "^1.0.1"
+  optionalDependencies:
+    saslprep "^1.0.0"
+
 mongodb@^2.2.31:
   version "2.2.35"
   resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-2.2.35.tgz#cd1b5af8a9463e3f9a787fa5b3d05565579730f9"
@@ -5743,6 +5766,12 @@ mongodb@^2.2.31:
     es6-promise "3.2.1"
     mongodb-core "2.1.19"
     readable-stream "2.2.7"
+
+mongodb@^3.1.0-beta4:
+  version "3.1.0-beta4"
+  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-3.1.0-beta4.tgz#922cb05c37d04a51ea783569743ef2a893585bfe"
+  dependencies:
+    mongodb-core "3.1.0-beta4"
 
 mongojs@^2.4.0:
   version "2.5.0"
@@ -7621,7 +7650,7 @@ require-main-filename@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/require-main-filename/-/require-main-filename-1.0.1.tgz#97f717b69d48784f5f526a6c5aa8ffdda055a4d1"
 
-require_optional@~1.0.0:
+require_optional@^1.0.1, require_optional@~1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/require_optional/-/require_optional-1.0.1.tgz#4cf35a4247f64ca3df8c2ef208cc494b1ca8fc2e"
   dependencies:
@@ -7824,6 +7853,10 @@ safe-regex@^1.1.0:
 "safer-buffer@>= 2.1.2 < 3":
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
+
+saslprep@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/saslprep/-/saslprep-1.0.0.tgz#2c4968a0bfbf249530cd597bc62870ccd4b41a24"
 
 sax@>=0.6.0, sax@^1.2.4, sax@~1.2.1, sax@~1.2.4:
   version "1.2.4"
